@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Klocka – Digitale Eieruhr</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
+
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     :root {
@@ -29,6 +31,7 @@
     body {
       background: var(--bg-light);
       color: var(--text-main);
+      line-height: 1.5;
     }
 
     /* HEADER */
@@ -47,7 +50,7 @@
 
     .app-title {
       font-size: 1.6rem;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .header-right {
@@ -234,9 +237,10 @@
     }
 
     .timer-time {
-      font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family: "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       text-align: center;
       font-size: 1.1rem;
+      font-weight: 600;
     }
 
     .progress-wrapper {
@@ -505,249 +509,3 @@
         nameInput.placeholder = currentLang === 'de' ? 'Produkt' : 'Product';
         nameInput.addEventListener('change', () => {
           p.name = nameInput.value;
-          saveProducts();
-          renderTimerView();
-        });
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'delete-btn';
-        delBtn.textContent = '×';
-        delBtn.addEventListener('click', () => {
-          products = products.filter(x => x.id !== p.id);
-          delete timers[p.id];
-          saveProducts();
-          saveTimers();
-          renderConfigView();
-          renderTimerView();
-        });
-
-        const hoursInput = document.createElement('input');
-        hoursInput.type = 'number';
-        hoursInput.className = 'time-input';
-        hoursInput.min = 0;
-        hoursInput.value = p.hours || 0;
-        hoursInput.addEventListener('change', () => {
-          p.hours = clampInt(hoursInput.value, 0, 99);
-          hoursInput.value = p.hours;
-          saveProducts();
-          updateTimerTotal(p.id);
-        });
-
-        const sep = document.createElement('div');
-        sep.className = 'time-separator';
-        sep.textContent = ':';
-
-        const minutesInput = document.createElement('input');
-        minutesInput.type = 'number';
-        minutesInput.className = 'time-input';
-        minutesInput.min = 0;
-        minutesInput.max = 59;
-        minutesInput.value = p.minutes || 0;
-        minutesInput.addEventListener('change', () => {
-          p.minutes = clampInt(minutesInput.value, 0, 59);
-          minutesInput.value = p.minutes;
-          saveProducts();
-          updateTimerTotal(p.id);
-        });
-
-        row.appendChild(cb);
-        row.appendChild(nameInput);
-        row.appendChild(delBtn);
-        row.appendChild(hoursInput);
-        row.appendChild(sep);
-        row.appendChild(minutesInput);
-
-        container.appendChild(row);
-      });
-    }
-
-    function renderTimerView() {
-      const container = document.getElementById('timerList');
-      container.innerHTML = '';
-      const t = I18N[currentLang];
-
-      const active = products.filter(p => p.active && (p.name || '').trim() !== '');
-      if (active.length === 0) {
-        const msg = document.createElement('p');
-        msg.textContent = t.noProducts;
-        container.appendChild(msg);
-        return;
-      }
-
-      active.forEach(p => {
-        const totalMs = (Number(p.hours||0)*60 + Number(p.minutes||0)) * 60 * 1000;
-        if (!timers[p.id]) {
-          timers[p.id] = {
-            totalMs: totalMs,
-            remainingMs: totalMs,
-            running: false,
-            endTimeMs: null
-          };
-        } else {
-          timers[p.id].totalMs = totalMs;
-          if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
-            timers[p.id].remainingMs = totalMs;
-          }
-        }
-
-        const row = document.createElement('div');
-        row.className = 'timer-row';
-        row.dataset.id = p.id;
-
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'timer-name';
-        const nameLabel = document.createElement('span');
-        nameLabel.textContent = p.name;
-        nameDiv.appendChild(nameLabel);
-
-        const progressContainer = document.createElement('div');
-        const progressWrapper = document.createElement('div');
-        progressWrapper.className = 'progress-wrapper';
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressWrapper.appendChild(progressBar);
-        const timeDiv = document.createElement('div');
-        timeDiv.className = 'timer-time';
-        progressContainer.appendChild(progressWrapper);
-        progressContainer.appendChild(timeDiv);
-
-        const startBtn = document.createElement('button');
-        startBtn.className = 'btn btn-start';
-        startBtn.textContent = t.start;
-
-        const stopBtn = document.createElement('button');
-        stopBtn.className = 'btn btn-stop';
-        stopBtn.textContent = t.stop;
-
-        row.appendChild(nameDiv);
-        row.appendChild(progressContainer);
-        row.appendChild(startBtn);
-        row.appendChild(stopBtn);
-
-        row._nameLabel = nameLabel;
-        row._progressBar = progressBar;
-        row._timeDiv = timeDiv;
-
-        startBtn.addEventListener('click', () => startTimer(p.id));
-        stopBtn.addEventListener('click', () => stopTimer(p.id));
-
-        container.appendChild(row);
-        updateRowUI(p.id);
-      });
-
-      saveTimers();
-    }
-
-    function startTimer(id) {
-      const timer = timers[id];
-      if (!timer) return;
-      timer.remainingMs = timer.totalMs;
-      timer.running = true;
-      timer.endTimeMs = Date.now() + timer.remainingMs;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function stopTimer(id) {
-      const timer = timers[id];
-      if (!timer) return;
-      timer.running = false;
-      timer.remainingMs = timer.totalMs;
-      timer.endTimeMs = null;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function updateRowUI(id) {
-      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
-      const timer = timers[id];
-      if (!row || !timer) return;
-
-      const timeDiv = row._timeDiv;
-      const progressBar = row._progressBar;
-      const nameLabel = row._nameLabel;
-
-      timeDiv.textContent = formatDuration(timer.remainingMs);
-      const ratio = timer.totalMs > 0 ? timer.remainingMs / timer.totalMs : 0;
-      const percent = Math.max(0, Math.min(100, ratio * 100));
-      progressBar.style.width = percent + '%';
-
-      const expired = timer.remainingMs <= 0;
-
-      if (expired) {
-        progressBar.classList.add('expired');
-        nameLabel.classList.add('timer-name-highlight');
-      } else {
-        progressBar.classList.remove('expired');
-        if (timer.running) {
-          nameLabel.classList.add('timer-name-highlight');
-        } else {
-          nameLabel.classList.remove('timer-name-highlight');
-        }
-      }
-    }
-
-    function startLoop() {
-      setInterval(() => {
-        const now = Date.now();
-        let changed = false;
-        for (const [id, timer] of Object.entries(timers)) {
-          if (!timer.running || !timer.endTimeMs) continue;
-          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
-          if (timer.remainingMs <= 0) {
-            timer.running = false;
-            timer.endTimeMs = null;
-          }
-          updateRowUI(id);
-          changed = true;
-        }
-        if (changed) saveTimers();
-      }, 500);
-    }
-
-    function updateTimerTotal(id) {
-      const p = products.find(x => x.id === id);
-      if (!p) return;
-      const totalMs = (Number(p.hours||0)*60 + Number(p.minutes||0)) * 60 * 1000;
-      if (!timers[id]) {
-        timers[id] = { totalMs, remainingMs: totalMs, running: false, endTimeMs: null };
-      } else {
-        timers[id].totalMs = totalMs;
-        if (!timers[id].running) timers[id].remainingMs = totalMs;
-      }
-      renderTimerView();
-    }
-
-    function clampInt(v, min, max) {
-      let n = parseInt(v, 10);
-      if (isNaN(n)) n = min;
-      if (n < min) n = min;
-      if (n > max) n = max;
-      return n;
-    }
-
-    function formatDuration(ms) {
-      if (ms <= 0) return '00:00:00';
-      const totalSeconds = Math.floor(ms / 1000);
-      const h = Math.floor(totalSeconds / 3600);
-      const m = Math.floor((totalSeconds % 3600) / 60);
-      const s = totalSeconds % 60;
-      return String(h).padStart(2,'0') + ':' +
-             String(m).padStart(2,'0') + ':' +
-             String(s).padStart(2,'0');
-    }
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen();
-        }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-      }
-    }
-  </script>
-</body>
-</html>
