@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Klocka – Digitale Eieruhr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-title">Klocka</div>
+    <button id="btnToConfig" class="header-button hidden">
+      Zeit einstellen ⏱
+    </button>
+  </header>
+
+  <main class="app-main">
+
+    <!-- Ansicht 1: Einstellungen -->
+    <section id="configView">
+      <div class="config-layout">
+        <div class="config-left">
+          <button id="btnAddProduct" class="btn btn-add">Produkt hinzufügen</button>
+
+          <table class="product-table">
+            <thead>
+              <tr>
+                <th>Aktiv</th>
+                <th>Produkt</th>
+                <th></th>
+                <th>Std.</th>
+                <th>Min.</th>
+              </tr>
+            </thead>
+            <tbody id="productConfigBody">
+              <!-- Dynamisch per JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="config-right">
+          <p>Hier kannst du die Haltezeiten einstellen.</p>
+          <p>
+            Neue Produkte kannst du in die freien Felder eintragen. Bitte
+            bestätige dann mit dem grünen Button.
+          </p>
+
+          <button id="btnToTimer" class="btn btn-primary">
+            Wenn du fertig bist, klicke hier
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ansicht 2: Timer -->
+    <section id="timerView" class="hidden">
+      <div class="timer-container">
+        <div id="timerList">
+          <!-- Dynamisch per JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>
