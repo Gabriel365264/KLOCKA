@@ -1,3 +1,4 @@
+```javascript
 // --- Datenmodell ---------------------------------------------------------
 
 const DEFAULT_PRODUCTS = [
@@ -19,15 +20,19 @@ let nextId = 1;
 let timers = {};
 
 const STORAGE_KEY = "klockaProducts";
+const STORAGE_TIMERS_KEY = "klockaTimers";
+let kioskMode = false;
 
 // --- Initialisierung -----------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
   loadProducts();
-  renderConfigView();
+  loadTimers();
+renderConfigView();
   renderTimerView();
   setupEventHandlers();
   startTimerLoop();
+  checkKioskMode();
 });
 
 function loadProducts() {
@@ -41,12 +46,135 @@ function loadProducts() {
       ...p
     }));
   }
-  // nextId bestimmen
   nextId = products.reduce((max, p) => Math.max(max, p.id || 0), 0) + 1;
 }
 
 function saveProducts() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+}
+
+function loadTimers() {
+  const stored = localStorage.getItem(STORAGE_TIMERS_KEY);
+  if (stored) {
+    try {
+      const savedTimers = JSON.parse(stored);
+      const now = Date.now();
+      
+      // Timer-Zustände wiederherstellen
+      for (const [id, timer] of Object.entries(savedTimers)) {
+        if (timer.running && timer.endTimeMs) {
+          const remaining = Math.max(0, timer.endTimeMs - now);
+          timers[id] = {
+            totalMs: timer.totalMs,
+            remainingMs: remaining,
+            running: remaining > 0,
+            endTimeMs: remaining > 0 ? timer.endTimeMs : null
+          };
+        } else {
+          timers[id] = {
+            totalMs: timer.totalMs,
+            remainingMs: timer.remainingMs,
+            running: false,
+            endTimeMs: null
+          };
+        }
+      }
+    } catch (e) {
+      console.error("Fehler beim Laden der Timer:", e);
+      timers = {};
+    }
+  }
+}
+
+function saveTimers() {
+  localStorage.setItem(STORAGE_TIMERS_KEY, JSON.stringify(timers));
+}
+
+function checkPIN() {
+  const storedPIN = localStorage.getItem(STORAGE_PIN_KEY);
+  if (!storedPIN) {
+    localStorage.setItem(STORAGE_PIN_KEY, DEFAULT_PIN);
+  }
+}
+
+function getPIN() {
+  return localStorage.getItem(STORAGE_PIN_KEY) || DEFAULT_PIN;
+}
+
+function setPIN(newPIN) {
+  localStorage.setItem(STORAGE_PIN_KEY, newPIN);
+}
+
+// --- Kiosk-Modus ---------------------------------------------------------
+
+function checkKioskMode() {
+  const urlParams = new URLSearchParams(window.location.search);
+  kioskMode = urlParams.get('kiosk') === 'true';
+  
+  if (kioskMode) {
+    document.body.classList.add('kiosk-mode');
+    showTimerView();
+    // Einstellungs-Button ausblenden im Kiosk-Modus
+    document.getElementById('btnToConfig').style.display = 'none';
+  }
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log(`Fehler beim Aktivieren von Fullscreen: ${err.message}`);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// --- Authentifizierung ---------------------------------------------------
+
+function promptPIN() {
+  const modal = document.getElementById('pinModal');
+  const input = document.getElementById('pinInput');
+  const error = document.getElementById('pinError');
+  
+  modal.classList.remove('hidden');
+  input.value = '';
+  error.classList.add('hidden');
+  input.focus();
+}
+
+function checkPINInput() {
+  const input = document.getElementById('pinInput');
+  const error = document.getElementById('pinError');
+  const enteredPIN = input.value;
+  const correctPIN = getPIN();
+  
+  if (enteredPIN === correctPIN) {
+    isAuthenticated = true;
+    document.getElementById('pinModal').classList.add('hidden');
+    showConfigView();
+  } else {
+    error.classList.remove('hidden');
+    input.value = '';
+    input.focus();
+  }
+}
+
+function closePINModal() {
+  document.getElementById('pinModal').classList.add('hidden');
+  if (!isAuthenticated) {
+    // Zurück zur Timer-Ansicht wenn nicht authentifiziert
+    showTimerView();
+  }
+}
+
+function promptChangePIN() {
+  const newPIN = prompt('Neue PIN eingeben (4 Ziffern):');
+  if (newPIN && /^\d{4}$/.test(newPIN)) {
+    setPIN(newPIN);
+    alert('PIN erfolgreich geändert!');
+  } else if (newPIN !== null) {
+    alert('Ungültige PIN! Bitte 4 Ziffern eingeben.');
+  }
 }
 
 // --- Views umschalten ----------------------------------------------------
@@ -56,27 +184,73 @@ function showConfigView() {
   document.getElementById("timerView").classList.add("hidden");
   document.getElementById("btnToConfig").classList.add("hidden");
 }
+  
+  document.getElementById('configView').classList.remove('hidden');
+  document.getElementById('timerView').classList.add('hidden');
+  document.getElementById('btnToConfig').classList.add('hidden');
+}
 
 function showTimerView() {
-  document.getElementById("configView").classList.add("hidden");
-  document.getElementById("timerView").classList.remove("hidden");
-  document.getElementById("btnToConfig").classList.remove("hidden");
+  document.getElementById('configView').classList.add('hidden');
+  document.getElementById('timerView').classList.remove('hidden');
+  
+  if (!kioskMode) {
+    document.getElementById('btnToConfig').classList.remove('hidden');
+  }
+  
+  isAuthenticated = false; // PIN muss erneut eingegeben werden
 }
 
 // --- Event Handler Setup -------------------------------------------------
 
 function setupEventHandlers() {
   document
-    .getElementById("btnAddProduct")
-    .addEventListener("click", () => addProduct());
+    .getElementById('btnAddProduct')
+    .addEventListener('click', () => addProduct());
 
   document
-    .getElementById("btnToTimer")
-    .addEventListener("click", () => showTimerView());
+    .getElementById('btnToTimer')
+    .addEventListener('click', () => showTimerView());
 
   document
-    .getElementById("btnToConfig")
-    .addEventListener("click", () => showConfigView());
+    .getElementById('btnToConfig')
+    .addEventListener('click', () => {
+      if (!kioskMode) {
+        promptPIN();
+      }
+    });
+
+  document
+    .getElementById('btnChangePIN')
+    .addEventListener('click', () => promptChangePIN());
+
+  document
+    .getElementById('btnSubmitPIN')
+    .addEventListener('click', () => checkPINInput());
+
+  document
+    .getElementById('btnClosePIN')
+    .addEventListener('click', () => closePINModal());
+
+  document
+    .getElementById('pinInput')
+    .addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        checkPINInput();
+      }
+    });
+
+  document
+    .getElementById('btnFullscreen')
+    .addEventListener('click', () => toggleFullscreen());
+
+  document
+    .getElementById('btnKioskMode')
+    .addEventListener('click', () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set('kiosk', 'true');
+      window.location.href = url.toString();
+    });
 }
 
 // --- Produkte bearbeiten (Config View) -----------------------------------
@@ -103,68 +277,65 @@ function updateProduct(id, changes) {
 
 function deleteProduct(id) {
   products = products.filter((p) => p.id !== id);
+  delete timers[id]; // Timer auch löschen
   saveProducts();
+  saveTimers();
   renderConfigView();
   renderTimerView();
 }
 
 function renderConfigView() {
-  const tbody = document.getElementById("productConfigBody");
-  tbody.innerHTML = "";
+  const tbody = document.getElementById('productConfigBody');
+  tbody.innerHTML = '';
 
   products.forEach((p) => {
-    const tr = document.createElement("tr");
+    const tr = document.createElement('tr');
     tr.dataset.id = p.id;
 
-    // Aktiv
-    const tdActive = document.createElement("td");
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
+    const tdActive = document.createElement('td');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
     cb.checked = !!p.active;
-    cb.addEventListener("change", (e) =>
+    cb.addEventListener('change', (e) =>
       updateProduct(p.id, { active: e.target.checked })
     );
     tdActive.appendChild(cb);
 
-    // Name
-    const tdName = document.createElement("td");
-    const nameInput = document.createElement("input");
-    nameInput.type = "text";
+    const tdName = document.createElement('td');
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
     nameInput.value = p.name;
-    nameInput.placeholder = "Produktname";
-    nameInput.addEventListener("change", (e) =>
+    nameInput.placeholder = 'Produktname';
+    nameInput.addEventListener('change', (e) =>
       updateProduct(p.id, { name: e.target.value })
     );
     tdName.appendChild(nameInput);
 
-    // Löschen-Button
-    const tdDelete = document.createElement("td");
-    const delBtn = document.createElement("button");
-    delBtn.className = "delete-btn";
-    delBtn.textContent = "✕";
-    delBtn.title = "Produkt entfernen";
-    delBtn.addEventListener("click", () => deleteProduct(p.id));
+    const tdDelete = document.createElement('td');
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Produkt entfernen';
+    delBtn.addEventListener('click', () => deleteProduct(p.id));
     tdDelete.appendChild(delBtn);
 
-    // Stunden
-    const tdHours = document.createElement("td");
-    const hoursInput = document.createElement("input");
-    hoursInput.type = "number";
+    const tdHours = document.createElement('td');
+    const hoursInput = document.createElement('input');
+    hoursInput.type = 'number';
     hoursInput.min = 0;
     hoursInput.value = p.hours ?? 0;
-    hoursInput.addEventListener("change", (e) =>
+    hoursInput.addEventListener('change', (e) =>
       updateProduct(p.id, { hours: clampInt(e.target.value, 0, 99) })
     );
     tdHours.appendChild(hoursInput);
 
-    // Minuten
-    const tdMinutes = document.createElement("td");
-    const minInput = document.createElement("input");
-    minInput.type = "number";
+    const tdMinutes = document.createElement('td');
+    const minInput = document.createElement('input');
+    minInput.type = 'number';
     minInput.min = 0;
     minInput.max = 59;
     minInput.value = p.minutes ?? 0;
-    minInput.addEventListener("change", (e) =>
+    minInput.addEventListener('change', (e) =>
       updateProduct(p.id, { minutes: clampInt(e.target.value, 0, 59) })
     );
     tdMinutes.appendChild(minInput);
@@ -181,21 +352,23 @@ function renderConfigView() {
 // --- Timer-Ansicht -------------------------------------------------------
 
 function renderTimerView() {
-  const list = document.getElementById("timerList");
-  list.innerHTML = "";
+  const list = document.getElementById('timerList');
+  list.innerHTML = '';
 
-  const activeProducts = products.filter((p) => p.active && p.name.trim() !== "");
+  const activeProducts = products.filter((p) => p.active && p.name.trim() !== '');
 
   if (activeProducts.length === 0) {
-    const msg = document.createElement("p");
-    msg.textContent = "Keine aktiven Produkte. Bitte unter \"Zeit einstellen\" konfigurieren.";
+    const msg = document.createElement('p');
+    msg.textContent = 'Keine aktiven Produkte. Bitte unter "Zeit einstellen" konfigurieren.';
+    msg.style.padding = '20px';
+    msg.style.textAlign = 'center';
     list.appendChild(msg);
     return;
   }
 
   activeProducts.forEach((p) => {
-    const row = document.createElement("div");
-    row.className = "timer-row";
+    const row = document.createElement('div');
+    row.className = 'timer-row';
     row.dataset.id = p.id;
 
     const totalMs = productTotalMs(p);
@@ -216,39 +389,35 @@ function renderTimerView() {
 
     const timerState = timers[p.id];
 
-    // Name
-    const nameDiv = document.createElement("div");
-    nameDiv.className = "timer-name";
-    const nameLabel = document.createElement("span");
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'timer-name';
+    const nameLabel = document.createElement('span');
     nameLabel.textContent = p.name;
     if (timerState.running && timerState.remainingMs > 0) {
-      nameLabel.classList.add("timer-name--running");
+      nameLabel.classList.add('timer-name--running');
     }
     nameDiv.appendChild(nameLabel);
 
-    // Zeit
-    const timeDiv = document.createElement("div");
-    timeDiv.className = "timer-time";
-    timeDiv.textContent = formatDuration(timerState.remainingMs);
-
-    // Progress
-    const progressWrapper = document.createElement("div");
-    progressWrapper.className = "progress-wrapper";
-    const progressBar = document.createElement("div");
-    progressBar.className = "progress-bar";
+    const progressWrapper = document.createElement('div');
+    progressWrapper.className = 'progress-wrapper';
+    const progressBar = document.createElement('div');
+    progressBar.className = 'progress-bar';
     progressWrapper.appendChild(progressBar);
 
-    // Buttons
-    const btnContainerStart = document.createElement("div");
-    const startBtn = document.createElement("button");
-    startBtn.className = "btn btn-small btn-primary";
-    startBtn.textContent = "Start";
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'timer-time';
+    timeDiv.textContent = formatDuration(timerState.remainingMs);
+
+    const btnContainerStart = document.createElement('div');
+    const startBtn = document.createElement('button');
+    startBtn.className = 'btn btn-small btn-primary';
+    startBtn.textContent = 'Start';
     btnContainerStart.appendChild(startBtn);
 
-    const btnContainerStop = document.createElement("div");
-    const stopBtn = document.createElement("button");
-    stopBtn.className = "btn btn-small btn-danger";
-    stopBtn.textContent = "Stop";
+    const btnContainerStop = document.createElement('div');
+    const stopBtn = document.createElement('button');
+    stopBtn.className = 'btn btn-small btn-danger';
+    stopBtn.textContent = 'Stop';
     btnContainerStop.appendChild(stopBtn);
 
     row.appendChild(nameDiv);
@@ -259,16 +428,13 @@ function renderTimerView() {
 
     list.appendChild(row);
 
-    // Referenzen im DOM speichern
     row._timeDiv = timeDiv;
     row._progressBar = progressBar;
     row._nameLabel = nameLabel;
 
-    // Click-Handler
-    startBtn.addEventListener("click", () => handleStart(p.id));
-    stopBtn.addEventListener("click", () => handleStop(p.id));
+    startBtn.addEventListener('click', () => handleStart(p.id));
+    stopBtn.addEventListener('click', () => handleStop(p.id));
 
-    // Initial UI
     updateTimerRowUI(p.id);
   });
 }
@@ -277,11 +443,11 @@ function handleStart(id) {
   const timer = timers[id];
   if (!timer) return;
 
-  // Start immer von voller Zeit
   timer.remainingMs = timer.totalMs;
   timer.running = true;
   timer.endTimeMs = Date.now() + timer.remainingMs;
 
+  saveTimers();
   updateTimerRowUI(id);
 }
 
@@ -293,6 +459,7 @@ function handleStop(id) {
   timer.remainingMs = timer.totalMs;
   timer.endTimeMs = null;
 
+  saveTimers();
   updateTimerRowUI(id);
 }
 
@@ -309,14 +476,13 @@ function startTimerLoop() {
       if (timer.remainingMs <= 0) {
         timer.running = false;
         timer.endTimeMs = null;
+        changed = true;
       }
       updateTimerRowUI(id);
-      changed = true;
     }
 
-    // Optional: falls man später was persistieren will
     if (changed) {
-      //
+      saveTimers();
     }
   }, 500);
 }
@@ -340,15 +506,15 @@ function updateTimerRowUI(id) {
   const expired = timer.remainingMs <= 0;
 
   if (expired) {
-    progressBar.classList.add("expired");
+    progressBar.classList.add('expired');
   } else {
-    progressBar.classList.remove("expired");
+    progressBar.classList.remove('expired');
   }
 
   if (timer.running && !expired) {
-    nameLabel.classList.add("timer-name--running");
+    nameLabel.classList.add('timer-name--running');
   } else {
-    nameLabel.classList.remove("timer-name--running");
+    nameLabel.classList.remove('timer-name--running');
   }
 }
 
@@ -361,7 +527,7 @@ function productTotalMs(p) {
 }
 
 function formatDuration(ms) {
-  if (ms <= 0) return "00:00:00";
+  if (ms <= 0) return '00:00:00';
 
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
@@ -369,10 +535,10 @@ function formatDuration(ms) {
   const seconds = totalSeconds % 60;
 
   return [
-    String(hours).padStart(2, "0"),
-    String(minutes).padStart(2, "0"),
-    String(seconds).padStart(2, "0")
-  ].join(":");
+    String(hours).padStart(2, '0'),
+    String(minutes).padStart(2, '0'),
+    String(seconds).padStart(2, '0')
+  ].join(':');
 }
 
 function clampInt(value, min, max) {
@@ -382,3 +548,4 @@ function clampInt(value, min, max) {
   if (v > max) v = max;
   return v;
 }
+```
