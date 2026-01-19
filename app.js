@@ -1,5 +1,10 @@
 ```javascript
-// --- Datenmodell ---------------------------------------------------------
+// =============================================================================
+// KLOCKA - Digitale Eieruhr für Bistro
+// Basierend auf Power App Design
+// =============================================================================
+
+// --- Konfiguration & Konstanten -------------------------------------------
 
 const DEFAULT_PRODUCTS = [
   { name: "Veggie Dog", hours: 0, minutes: 20, active: true },
@@ -12,34 +17,115 @@ const DEFAULT_PRODUCTS = [
   { name: "Muffin Blaubeer", hours: 12, minutes: 0, active: true }
 ];
 
+const TRANSLATIONS = {
+  de: {
+    appTitle: "Klocka",
+    addProduct: "Produkt hinzufügen",
+    productName: "Produkt",
+    hours: "Std.",
+    minutes: "Min.",
+    active: "Aktiv",
+    setTime: "Zeit einstellen",
+    start: "Start",
+    stop: "Stop",
+    whenReady: "Wenn du fertig bist, klicke hier",
+    instructionTime: "Hier kannst du die Haltezeiten einstellen.",
+    instructionNew: "Neue Produkte kannst die in die freien Felder eintragen, bitte bestätige dann mit dem grünen",
+    noActiveProducts: "Keine aktiven Produkte. Bitte unter 'Zeit einstellen' konfigurieren.",
+    confirmMark: "✓"
+  },
+  en: {
+    appTitle: "Klocka",
+    addProduct: "Add Product",
+    productName: "Product",
+    hours: "Hrs.",
+    minutes: "Min.",
+    active: "Active",
+    setTime: "Set Time",
+    start: "Start",
+    stop: "Stop",
+    whenReady: "When you're ready, click here",
+    instructionTime: "Here you can set the holding times.",
+    instructionNew: "You can enter new products in the free fields, please confirm with the green",
+    noActiveProducts: "No active products. Please configure under 'Set Time'.",
+    confirmMark: "✓"
+  }
+};
+
+// --- Globale Variablen ---------------------------------------------------
+
 let products = [];
 let nextId = 1;
-
-// Timer-Zustand pro Produkt-ID
-// { [id]: { totalMs, remainingMs, running, endTimeMs } }
 let timers = {};
+let currentLanguage = 'de';
 
-const STORAGE_KEY = "klockaProducts";
-const STORAGE_TIMERS_KEY = "klockaTimers";
-let kioskMode = false;
+const STORAGE_KEYS = {
+  products: 'klockaProducts',
+  timers: 'klockaTimers',
+  language: 'klockaLanguage'
+};
 
 // --- Initialisierung -----------------------------------------------------
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
+  loadLanguage();
   loadProducts();
   loadTimers();
-renderConfigView();
+  renderConfigView();
   renderTimerView();
   setupEventHandlers();
   startTimerLoop();
-  checkKioskMode();
+  updateLanguage();
 });
 
+// --- Sprach-Verwaltung ---------------------------------------------------
+
+function loadLanguage() {
+  const saved = localStorage.getItem(STORAGE_KEYS.language);
+  currentLanguage = saved || 'de';
+}
+
+function saveLanguage() {
+  localStorage.setItem(STORAGE_KEYS.language, currentLanguage);
+}
+
+function toggleLanguage() {
+  currentLanguage = currentLanguage === 'de' ? 'en' : 'de';
+  saveLanguage();
+  updateLanguage();
+  renderConfigView();
+  renderTimerView();
+}
+
+function t(key) {
+  return TRANSLATIONS[currentLanguage][key] || key;
+}
+
+function updateLanguage() {
+  const langBtn = document.getElementById('btnLanguage');
+  if (langBtn) {
+    langBtn.textContent = currentLanguage === 'de' ? '🇬🇧 EN' : '🇩🇪 DE';
+  }
+  
+  document.querySelector('.app-title').textContent = t('appTitle');
+  
+  const toConfigBtn = document.getElementById('btnToConfig');
+  if (toConfigBtn) {
+    toConfigBtn.innerHTML = `${t('setTime')} <span class="icon-clock">⏱</span>`;
+  }
+}
+
+// --- Daten laden/speichern -----------------------------------------------
+
 function loadProducts() {
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = localStorage.getItem(STORAGE_KEYS.products);
   if (stored) {
-    products = JSON.parse(stored);
-    if (!Array.isArray(products)) products = [];
+    try {
+      products = JSON.parse(stored);
+      if (!Array.isArray(products)) products = [];
+    } catch (e) {
+      products = [];
+    }
   } else {
     products = DEFAULT_PRODUCTS.map((p, index) => ({
       id: index + 1,
@@ -50,234 +136,109 @@ function loadProducts() {
 }
 
 function saveProducts() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(products));
 }
 
 function loadTimers() {
-  const stored = localStorage.getItem(STORAGE_TIMERS_KEY);
+  const stored = localStorage.getItem(STORAGE_KEYS.timers);
   if (stored) {
     try {
       const savedTimers = JSON.parse(stored);
       const now = Date.now();
       
-      // Timer-Zustände wiederherstellen
-      for (const [id, timer] of Object.entries(savedTimers)) {
+      for (const [idStr, timer] of Object.entries(savedTimers)) {
         if (timer.running && timer.endTimeMs) {
-          const remaining = Math.max(0, timer.endTimeMs - now);
-          timers[id] = {
-            totalMs: timer.totalMs,
-            remainingMs: remaining,
-            running: remaining > 0,
-            endTimeMs: remaining > 0 ? timer.endTimeMs : null
-          };
-        } else {
-          timers[id] = {
-            totalMs: timer.totalMs,
-            remainingMs: timer.remainingMs,
-            running: false,
-            endTimeMs: null
-          };
+          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
+          if (timer.remainingMs <= 0) {
+            timer.running = false;
+            timer.endTimeMs = null;
+          }
         }
+        timers[idStr] = timer;
       }
     } catch (e) {
-      console.error("Fehler beim Laden der Timer:", e);
       timers = {};
     }
   }
 }
 
 function saveTimers() {
-  localStorage.setItem(STORAGE_TIMERS_KEY, JSON.stringify(timers));
+  localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
 }
 
-function checkPIN() {
-  const storedPIN = localStorage.getItem(STORAGE_PIN_KEY);
-  if (!storedPIN) {
-    localStorage.setItem(STORAGE_PIN_KEY, DEFAULT_PIN);
-  }
+// --- Views umschalten ----------------------------------------------------
+
+function showConfigView() {
+  document.getElementById('configView').classList.remove('hidden');
+  document.getElementById('timerView').classList.add('hidden');
+  document.getElementById('btnToConfig').classList.add('hidden');
+  document.getElementById('btnLanguage').classList.remove('hidden');
+  document.getElementById('btnFullscreen').classList.add('hidden');
 }
 
-function getPIN() {
-  return localStorage.getItem(STORAGE_PIN_KEY) || DEFAULT_PIN;
+function showTimerView() {
+  document.getElementById('configView').classList.add('hidden');
+  document.getElementById('timerView').classList.remove('hidden');
+  document.getElementById('btnToConfig').classList.remove('hidden');
+  document.getElementById('btnLanguage').classList.remove('hidden');
+  document.getElementById('btnFullscreen').classList.remove('hidden');
+  renderTimerView();
 }
 
-function setPIN(newPIN) {
-  localStorage.setItem(STORAGE_PIN_KEY, newPIN);
-}
+// --- Event Handler -------------------------------------------------------
 
-// --- Kiosk-Modus ---------------------------------------------------------
-
-function checkKioskMode() {
-  const urlParams = new URLSearchParams(window.location.search);
-  kioskMode = urlParams.get('kiosk') === 'true';
-  
-  if (kioskMode) {
-    document.body.classList.add('kiosk-mode');
-    showTimerView();
-    // Einstellungs-Button ausblenden im Kiosk-Modus
-    document.getElementById('btnToConfig').style.display = 'none';
-  }
+function setupEventHandlers() {
+  document.getElementById('btnAddProduct').addEventListener('click', addProduct);
+  document.getElementById('btnToTimer').addEventListener('click', showTimerView);
+  document.getElementById('btnToConfig').addEventListener('click', showConfigView);
+  document.getElementById('btnLanguage').addEventListener('click', toggleLanguage);
+  document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
 }
 
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(err => {
-      console.log(`Fehler beim Aktivieren von Fullscreen: ${err.message}`);
+      console.log('Fullscreen failed:', err);
     });
   } else {
     document.exitFullscreen();
   }
 }
 
-// --- Authentifizierung ---------------------------------------------------
-
-function promptPIN() {
-  const modal = document.getElementById('pinModal');
-  const input = document.getElementById('pinInput');
-  const error = document.getElementById('pinError');
-  
-  modal.classList.remove('hidden');
-  input.value = '';
-  error.classList.add('hidden');
-  input.focus();
-}
-
-function checkPINInput() {
-  const input = document.getElementById('pinInput');
-  const error = document.getElementById('pinError');
-  const enteredPIN = input.value;
-  const correctPIN = getPIN();
-  
-  if (enteredPIN === correctPIN) {
-    isAuthenticated = true;
-    document.getElementById('pinModal').classList.add('hidden');
-    showConfigView();
-  } else {
-    error.classList.remove('hidden');
-    input.value = '';
-    input.focus();
-  }
-}
-
-function closePINModal() {
-  document.getElementById('pinModal').classList.add('hidden');
-  if (!isAuthenticated) {
-    // Zurück zur Timer-Ansicht wenn nicht authentifiziert
-    showTimerView();
-  }
-}
-
-function promptChangePIN() {
-  const newPIN = prompt('Neue PIN eingeben (4 Ziffern):');
-  if (newPIN && /^\d{4}$/.test(newPIN)) {
-    setPIN(newPIN);
-    alert('PIN erfolgreich geändert!');
-  } else if (newPIN !== null) {
-    alert('Ungültige PIN! Bitte 4 Ziffern eingeben.');
-  }
-}
-
-// --- Views umschalten ----------------------------------------------------
-
-function showConfigView() {
-  document.getElementById("configView").classList.remove("hidden");
-  document.getElementById("timerView").classList.add("hidden");
-  document.getElementById("btnToConfig").classList.add("hidden");
-}
-  
-  document.getElementById('configView').classList.remove('hidden');
-  document.getElementById('timerView').classList.add('hidden');
-  document.getElementById('btnToConfig').classList.add('hidden');
-}
-
-function showTimerView() {
-  document.getElementById('configView').classList.add('hidden');
-  document.getElementById('timerView').classList.remove('hidden');
-  
-  if (!kioskMode) {
-    document.getElementById('btnToConfig').classList.remove('hidden');
-  }
-  
-  isAuthenticated = false; // PIN muss erneut eingegeben werden
-}
-
-// --- Event Handler Setup -------------------------------------------------
-
-function setupEventHandlers() {
-  document
-    .getElementById('btnAddProduct')
-    .addEventListener('click', () => addProduct());
-
-  document
-    .getElementById('btnToTimer')
-    .addEventListener('click', () => showTimerView());
-
-  document
-    .getElementById('btnToConfig')
-    .addEventListener('click', () => {
-      if (!kioskMode) {
-        promptPIN();
-      }
-    });
-
-  document
-    .getElementById('btnChangePIN')
-    .addEventListener('click', () => promptChangePIN());
-
-  document
-    .getElementById('btnSubmitPIN')
-    .addEventListener('click', () => checkPINInput());
-
-  document
-    .getElementById('btnClosePIN')
-    .addEventListener('click', () => closePINModal());
-
-  document
-    .getElementById('pinInput')
-    .addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        checkPINInput();
-      }
-    });
-
-  document
-    .getElementById('btnFullscreen')
-    .addEventListener('click', () => toggleFullscreen());
-
-  document
-    .getElementById('btnKioskMode')
-    .addEventListener('click', () => {
-      const url = new URL(window.location.href);
-      url.searchParams.set('kiosk', 'true');
-      window.location.href = url.toString();
-    });
-}
-
-// --- Produkte bearbeiten (Config View) -----------------------------------
+// --- Produkte verwalten --------------------------------------------------
 
 function addProduct() {
   products.push({
     id: nextId++,
-    name: "",
+    name: '',
     hours: 0,
     minutes: 0,
     active: true
   });
   saveProducts();
   renderConfigView();
-  renderTimerView();
 }
 
 function updateProduct(id, changes) {
-  products = products.map((p) => (p.id === id ? { ...p, ...changes } : p));
+  products = products.map(p => p.id === id ? { ...p, ...changes } : p);
   saveProducts();
-  renderConfigView();
-  renderTimerView();
+  
+  if (changes.hours !== undefined || changes.minutes !== undefined) {
+    const product = products.find(p => p.id === id);
+    if (product && timers[id]) {
+      const newTotalMs = productTotalMs(product);
+      timers[id].totalMs = newTotalMs;
+      if (!timers[id].running) {
+        timers[id].remainingMs = newTotalMs;
+      }
+      saveTimers();
+    }
+  }
 }
 
 function deleteProduct(id) {
-  products = products.filter((p) => p.id !== id);
-  delete timers[id]; // Timer auch löschen
+  products = products.filter(p => p.id !== id);
+  delete timers[id];
   saveProducts();
   saveTimers();
   renderConfigView();
@@ -288,65 +249,98 @@ function renderConfigView() {
   const tbody = document.getElementById('productConfigBody');
   tbody.innerHTML = '';
 
-  products.forEach((p) => {
+  products.forEach(p => {
     const tr = document.createElement('tr');
-    tr.dataset.id = p.id;
 
+    // Checkbox
     const tdActive = document.createElement('td');
+    tdActive.className = 'td-checkbox';
     const cb = document.createElement('input');
     cb.type = 'checkbox';
+    cb.className = 'product-checkbox';
     cb.checked = !!p.active;
-    cb.addEventListener('change', (e) =>
-      updateProduct(p.id, { active: e.target.checked })
-    );
+    cb.addEventListener('change', e => updateProduct(p.id, { active: e.target.checked }));
     tdActive.appendChild(cb);
 
+    // Name
     const tdName = document.createElement('td');
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
+    nameInput.className = 'product-input';
     nameInput.value = p.name;
-    nameInput.placeholder = 'Produktname';
-    nameInput.addEventListener('change', (e) =>
-      updateProduct(p.id, { name: e.target.value })
-    );
+    nameInput.placeholder = t('productName');
+    nameInput.addEventListener('change', e => updateProduct(p.id, { name: e.target.value }));
     tdName.appendChild(nameInput);
 
+    // Delete
     const tdDelete = document.createElement('td');
+    tdDelete.className = 'td-delete';
     const delBtn = document.createElement('button');
     delBtn.className = 'delete-btn';
-    delBtn.textContent = '✕';
-    delBtn.title = 'Produkt entfernen';
+    delBtn.innerHTML = '⊗';
+    delBtn.title = 'Löschen';
     delBtn.addEventListener('click', () => deleteProduct(p.id));
     tdDelete.appendChild(delBtn);
 
+    // Hours
     const tdHours = document.createElement('td');
+    tdHours.className = 'td-time';
     const hoursInput = document.createElement('input');
     hoursInput.type = 'number';
+    hoursInput.className = 'time-input';
     hoursInput.min = 0;
+    hoursInput.max = 99;
     hoursInput.value = p.hours ?? 0;
-    hoursInput.addEventListener('change', (e) =>
-      updateProduct(p.id, { hours: clampInt(e.target.value, 0, 99) })
-    );
+    hoursInput.addEventListener('change', e => {
+      const val = clampInt(e.target.value, 0, 99);
+      e.target.value = val;
+      updateProduct(p.id, { hours: val });
+    });
     tdHours.appendChild(hoursInput);
 
+    // Separator
+    const tdSep = document.createElement('td');
+    tdSep.className = 'td-separator';
+    tdSep.textContent = ':';
+
+    // Minutes
     const tdMinutes = document.createElement('td');
+    tdMinutes.className = 'td-time';
     const minInput = document.createElement('input');
     minInput.type = 'number';
+    minInput.className = 'time-input';
     minInput.min = 0;
     minInput.max = 59;
     minInput.value = p.minutes ?? 0;
-    minInput.addEventListener('change', (e) =>
-      updateProduct(p.id, { minutes: clampInt(e.target.value, 0, 59) })
-    );
+    minInput.addEventListener('change', e => {
+      const val = clampInt(e.target.value, 0, 59);
+      e.target.value = val;
+      updateProduct(p.id, { minutes: val });
+    });
     tdMinutes.appendChild(minInput);
 
     tr.appendChild(tdActive);
     tr.appendChild(tdName);
     tr.appendChild(tdDelete);
     tr.appendChild(tdHours);
+    tr.appendChild(tdSep);
     tr.appendChild(tdMinutes);
     tbody.appendChild(tr);
   });
+
+  // Buttons aktualisieren
+  document.getElementById('btnAddProduct').textContent = t('addProduct');
+  document.getElementById('btnToTimer').textContent = t('whenReady');
+  
+  const instructionText = document.querySelector('.config-right p:first-child');
+  if (instructionText) {
+    instructionText.textContent = t('instructionTime');
+  }
+  
+  const instructionNew = document.querySelector('.config-right p:nth-child(2)');
+  if (instructionNew) {
+    instructionNew.innerHTML = `${t('instructionNew')} <span class="confirm-icon">${t('confirmMark')}</span>`;
+  }
 }
 
 // --- Timer-Ansicht -------------------------------------------------------
@@ -355,22 +349,17 @@ function renderTimerView() {
   const list = document.getElementById('timerList');
   list.innerHTML = '';
 
-  const activeProducts = products.filter((p) => p.active && p.name.trim() !== '');
+  const activeProducts = products.filter(p => p.active && p.name.trim() !== '');
 
   if (activeProducts.length === 0) {
-    const msg = document.createElement('p');
-    msg.textContent = 'Keine aktiven Produkte. Bitte unter "Zeit einstellen" konfigurieren.';
-    msg.style.padding = '20px';
-    msg.style.textAlign = 'center';
+    const msg = document.createElement('div');
+    msg.className = 'no-products-message';
+    msg.textContent = t('noActiveProducts');
     list.appendChild(msg);
     return;
   }
 
-  activeProducts.forEach((p) => {
-    const row = document.createElement('div');
-    row.className = 'timer-row';
-    row.dataset.id = p.id;
-
+  activeProducts.forEach(p => {
     const totalMs = productTotalMs(p);
 
     if (!timers[p.id]) {
@@ -382,21 +371,20 @@ function renderTimerView() {
       };
     } else {
       timers[p.id].totalMs = totalMs;
-      if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
-        timers[p.id].remainingMs = totalMs;
-      }
     }
 
-    const timerState = timers[p.id];
+    const timer = timers[p.id];
+    const row = document.createElement('div');
+    row.className = 'timer-row';
+    row.dataset.id = p.id;
+
+    // Name + Progress Bar Container
+    const leftContainer = document.createElement('div');
+    leftContainer.className = 'timer-left';
 
     const nameDiv = document.createElement('div');
     nameDiv.className = 'timer-name';
-    const nameLabel = document.createElement('span');
-    nameLabel.textContent = p.name;
-    if (timerState.running && timerState.remainingMs > 0) {
-      nameLabel.classList.add('timer-name--running');
-    }
-    nameDiv.appendChild(nameLabel);
+    nameDiv.textContent = p.name;
 
     const progressWrapper = document.createElement('div');
     progressWrapper.className = 'progress-wrapper';
@@ -404,36 +392,40 @@ function renderTimerView() {
     progressBar.className = 'progress-bar';
     progressWrapper.appendChild(progressBar);
 
+    leftContainer.appendChild(nameDiv);
+    leftContainer.appendChild(progressWrapper);
+
+    // Time Display
     const timeDiv = document.createElement('div');
     timeDiv.className = 'timer-time';
-    timeDiv.textContent = formatDuration(timerState.remainingMs);
+    timeDiv.textContent = formatDuration(timer.remainingMs);
 
-    const btnContainerStart = document.createElement('div');
+    // Buttons
+    const btnContainer = document.createElement('div');
+    btnContainer.className = 'timer-buttons';
+
     const startBtn = document.createElement('button');
-    startBtn.className = 'btn btn-small btn-primary';
-    startBtn.textContent = 'Start';
-    btnContainerStart.appendChild(startBtn);
+    startBtn.className = 'btn btn-start';
+    startBtn.textContent = t('start');
+    startBtn.addEventListener('click', () => handleStart(p.id));
 
-    const btnContainerStop = document.createElement('div');
     const stopBtn = document.createElement('button');
-    stopBtn.className = 'btn btn-small btn-danger';
-    stopBtn.textContent = 'Stop';
-    btnContainerStop.appendChild(stopBtn);
+    stopBtn.className = 'btn btn-stop';
+    stopBtn.textContent = t('stop');
+    stopBtn.addEventListener('click', () => handleStop(p.id));
 
-    row.appendChild(nameDiv);
-    row.appendChild(progressWrapper);
+    btnContainer.appendChild(startBtn);
+    btnContainer.appendChild(stopBtn);
+
+    row.appendChild(leftContainer);
     row.appendChild(timeDiv);
-    row.appendChild(btnContainerStart);
-    row.appendChild(btnContainerStop);
+    row.appendChild(btnContainer);
 
     list.appendChild(row);
 
     row._timeDiv = timeDiv;
     row._progressBar = progressBar;
-    row._nameLabel = nameLabel;
-
-    startBtn.addEventListener('click', () => handleStart(p.id));
-    stopBtn.addEventListener('click', () => handleStop(p.id));
+    row._nameDiv = nameDiv;
 
     updateTimerRowUI(p.id);
   });
@@ -473,18 +465,20 @@ function startTimerLoop() {
       if (!timer.running) continue;
 
       timer.remainingMs = Math.max(0, timer.endTimeMs - now);
+      
       if (timer.remainingMs <= 0) {
         timer.running = false;
         timer.endTimeMs = null;
         changed = true;
       }
+
       updateTimerRowUI(id);
     }
 
     if (changed) {
       saveTimers();
     }
-  }, 500);
+  }, 100);
 }
 
 function updateTimerRowUI(id) {
@@ -494,7 +488,7 @@ function updateTimerRowUI(id) {
 
   const timeDiv = row._timeDiv;
   const progressBar = row._progressBar;
-  const nameLabel = row._nameLabel;
+  const nameDiv = row._nameDiv;
 
   timeDiv.textContent = formatDuration(timer.remainingMs);
 
@@ -505,16 +499,16 @@ function updateTimerRowUI(id) {
 
   const expired = timer.remainingMs <= 0;
 
-  if (expired) {
-    progressBar.classList.add('expired');
-  } else {
-    progressBar.classList.remove('expired');
-  }
+  row.classList.remove('timer-running', 'timer-expired');
+  progressBar.classList.remove('progress-expired');
+  nameDiv.classList.remove('name-expired');
 
-  if (timer.running && !expired) {
-    nameLabel.classList.add('timer-name--running');
-  } else {
-    nameLabel.classList.remove('timer-name--running');
+  if (expired) {
+    row.classList.add('timer-expired');
+    progressBar.classList.add('progress-expired');
+    nameDiv.classList.add('name-expired');
+  } else if (timer.running) {
+    row.classList.add('timer-running');
   }
 }
 
