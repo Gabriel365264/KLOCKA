@@ -4,12 +4,22 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Noto IKEA', 'Noto Sans', system-ui, -apple-system, sans-serif;
 }
 
 body {
-  background: #f7f7f7;
-  color: #222;
+  background: #f5f5f5;
+  color: #111;
+}
+
+:root {
+  --ikea-blue: #0051BA;
+  --ikea-yellow: #FFDB00;
+  --ikea-black: #111;
+  --ikea-white: #fff;
+  --ikea-gray: #dfdfdf;
+  --ikea-green: #00853f;
+  --ikea-red: #E00751;
 }
 
 /* Header */
@@ -18,22 +28,35 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #444;
-  color: #fff;
+  background: var(--ikea-blue);
+  color: var(--ikea-white);
   padding: 12px 24px;
 }
 
 .app-title {
-  font-size: 1.4rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ikea-white);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ikea-logo {
+  height: 40px;
+  width: auto;
 }
 
 .header-button {
   border-radius: 20px;
   border: none;
   padding: 8px 18px;
-  background: #b9a6ff;
-  color: #fff;
+  background: var(--ikea-yellow);
+  color: var(--ikea-black);
+  font-weight: 700;
   cursor: pointer;
   font-weight: 600;
 }
@@ -65,18 +88,26 @@ body {
 }
 
 .btn-primary {
-  background: #00c853;
-  color: #fff;
+  background: var(--ikea-blue);
+  color: var(--ikea-white);
+  font-weight: 700;
+}
+
+.btn-primary:hover {
+  background: #003d8f;
 }
 
 .btn-primary:disabled {
-  background: #a5d6a7;
+  background: var(--ikea-gray);
   cursor: default;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-add {
-  background: #ff80ab;
-  color: #fff;
+  background: var(--ikea-yellow);
+  color: var(--ikea-black);
+  font-weight: 700;
   margin-bottom: 16px;
 }
 
@@ -86,8 +117,9 @@ body {
 }
 
 .btn-danger {
-  background: #ff1744;
-  color: #fff;
+  background: var(--ikea-red);
+  color: var(--ikea-white);
+  font-weight: 700;
 }
 
 .btn-small {
@@ -140,7 +172,9 @@ body {
 }
 
 .product-table thead {
-  background: #f0f0f0;
+  background: var(--ikea-blue);
+  color: var(--ikea-white);
+  font-weight: 700;
 }
 
 .product-table tbody tr:last-child td {
@@ -163,7 +197,7 @@ body {
 .product-table .delete-btn {
   background: none;
   border: none;
-  color: #ff1744;
+  color: var(--ikea-red);
   font-size: 1rem;
   cursor: pointer;
 }
@@ -198,7 +232,9 @@ body {
 }
 
 .timer-name--running {
-  background: #ff8aa7;
+  background: var(--ikea-yellow);
+  color: var(--ikea-black);
+  font-weight: 700;
   display: inline-block;
   padding: 4px 8px;
   border-radius: 3px;
@@ -221,22 +257,37 @@ body {
 .progress-bar {
   height: 100%;
   width: 0%;
-  background: #00c853;
+  background: var(--ikea-green);
   transition: width 0.3s linear, background 0.3s;
 }
 
 .progress-bar.expired {
-  background: #ff1744;
-  animation: blink 1s linear infinite;
+  background: var(--ikea-red);
+  animation: blinkBar 0.8s ease-in-out infinite;
 }
 
-@keyframes blink {
-  0%, 49% {
+@keyframes blinkBar {
+  0%, 100% {
     opacity: 1;
+    transform: scaleY(1);
   }
-  50%, 100% {
-    opacity: 0.2;
+  50% {
+    opacity: 0.3;
+    transform: scaleY(0.95);
   }
+}
+
+@keyframes blinkRow {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(224, 7, 81, 0.1);
+  }
+}
+
+.timer-row.expired {
+  animation: blinkRow 1s ease-in-out infinite;
 }
 
 /* Responsive */
