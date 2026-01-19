@@ -1,73 +1,52 @@
-```html
 <!DOCTYPE html>
-<html lang="de" data-lang="de">
+<html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Klocka – Food Timer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+IKEA:wght@400;700&display=swap" rel="stylesheet">
+  <title>Klocka – Digitale Eieruhr</title>
   <link rel="stylesheet" href="style.css" />
   <script defer src="app.js"></script>
 </head>
 <body>
   <header class="app-header">
     <div class="header-left">
-      <svg class="ikea-logo" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="40" rx="95" ry="35" fill="#0051BA"/>
-        <ellipse cx="100" cy="40" rx="85" ry="30" fill="#FFDB00"/>
-        <text x="100" y="50" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#0051BA" text-anchor="middle">IKEA</text>
-      </svg>
-      <div class="app-title" data-i18n="app.title">Klocka</div>
+      <div class="app-title">Klocka</div>
     </div>
-    <div class="header-buttons">
-      <button id="btnLanguage" class="header-button" title="Language">
-        <span id="currentLang">DE</span> 🌐
+    <div class="header-right">
+      <button id="btnLanguage" class="header-button" title="Sprache wechseln">
+        <span id="langFlag">🇩🇪</span>
       </button>
-      <button id="btnToConfig" class="header-button hidden" data-i18n="nav.settings">
-        ⚙️ Einstellungen
-      </button>
-      <button id="btnFullscreen" class="header-button" title="Fullscreen">
-        ⛶
+      <button id="btnFullscreen" class="header-button" title="Vollbild">⛶</button>
+      <button id="btnToConfig" class="header-button hidden">
+        <span data-i18n="settings">Zeit einstellen</span> ⏱
       </button>
     </div>
   </header>
 
   <main class="app-main">
-
     <!-- Ansicht 1: Einstellungen -->
     <section id="configView">
-      <div class="config-layout">
-        <div class="config-left">
-          <button id="btnAddProduct" class="btn btn-add" data-i18n="config.addProduct">Produkt hinzufügen</button>
-
-          <table class="product-table">
-            <thead>
-              <tr>
-                <th data-i18n="config.active">Aktiv</th>
-                <th data-i18n="config.product">Produkt</th>
-                <th></th>
-                <th data-i18n="config.hours">Std.</th>
-                <th data-i18n="config.minutes">Min.</th>
-              </tr>
-            </thead>
-            <tbody id="productConfigBody">
-              <!-- Dynamisch per JS -->
-            </tbody>
-          </table>
+      <div class="config-container">
+        <div class="config-header">
+          <button id="btnAddProduct" class="btn btn-add" data-i18n="addProduct">Produkt hinzufügen</button>
         </div>
 
-        <div class="config-right">
-          <p data-i18n="config.instruction1">Hier kannst du die Haltezeiten einstellen.</p>
-          <p data-i18n="config.instruction2">
-            Neue Produkte kannst du in die freien Felder eintragen. Bitte
-            bestätige dann mit dem grünen Button.
-          </p>
+        <div class="config-content">
+          <div class="config-left">
+            <div class="product-list" id="productConfigList">
+              <!-- Dynamisch per JS -->
+            </div>
+          </div>
 
-          <button id="btnToTimer" class="btn btn-primary" data-i18n="config.done">
-            Wenn du fertig bist, klicke hier
-          </button>
+          <div class="config-right">
+            <div class="info-box">
+              <p data-i18n="infoText1">Hier kannst du die Haltezeiten einstellen.</p>
+              <p data-i18n="infoText2">Neue Produkte kannst du in die freien Felder eintragen, bitte bestätige dann mit dem grünen Button.</p>
+              <button id="btnToTimer" class="btn btn-primary btn-large">
+                <span data-i18n="ready">Wenn du fertig bist, klicke hier</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -75,13 +54,11 @@
     <!-- Ansicht 2: Timer -->
     <section id="timerView" class="hidden">
       <div class="timer-container">
-        <div id="timerList">
+        <div id="timerList" class="timer-list">
           <!-- Dynamisch per JS -->
         </div>
       </div>
     </section>
-
   </main>
 </body>
 </html>
-```
