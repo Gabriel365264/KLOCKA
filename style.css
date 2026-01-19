@@ -1,28 +1,40 @@
+```css
+/* IKEA Corporate Design - Klocka Timer App */
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Noto IKEA', 'Noto Sans', system-ui, -apple-system, sans-serif;
-}
-
-body {
-  background: #f5f5f5;
-  color: #111;
 }
 
 :root {
   --ikea-blue: #0051BA;
-  --ikea-yellow: #FFDB00;
-  --ikea-black: #111;
-  --ikea-white: #fff;
-  --ikea-gray: #dfdfdf;
-  --ikea-green: #00853f;
+  --ikea-yellow: #FFDA1A;
+  --ikea-dark-blue: #003d82;
+  --ikea-light-gray: #F5F5F5;
+  --ikea-gray: #929292;
+  --ikea-dark-gray: #484848;
+  --ikea-white: #FFFFFF;
   --ikea-red: #E00751;
+  --ikea-green: #00853F;
+  --pink-light: #FFB3C6;
+  --pink-medium: #FF80AB;
+  --text-primary: #111111;
+  --text-secondary: #484848;
 }
 
-/* Header */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
+
+body {
+  font-family: 'Noto Sans', 'Verdana', sans-serif;
+  background: var(--ikea-light-gray);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ========== HEADER ========== */
 
 .app-header {
   display: flex;
@@ -30,286 +42,473 @@ body {
   align-items: center;
   background: var(--ikea-blue);
   color: var(--ikea-white);
-  padding: 12px 24px;
+  padding: 16px 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .app-title {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: var(--ikea-white);
+  letter-spacing: 0.5px;
 }
 
-.header-left {
+.header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.lang-toggle {
+  background: var(--ikea-yellow);
+  color: var(--ikea-blue);
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.lang-toggle:hover {
+  background: #ffd700;
+  transform: scale(1.05);
+}
+
+.fullscreen-btn {
+  background: transparent;
+  border: 2px solid var(--ikea-white);
+  color: var(--ikea-white);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.ikea-logo {
-  height: 40px;
-  width: auto;
+.fullscreen-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
 }
 
 .header-button {
   border-radius: 20px;
   border: none;
-  padding: 8px 18px;
+  padding: 10px 20px;
   background: var(--ikea-yellow);
-  color: var(--ikea-black);
-  font-weight: 700;
+  color: var(--ikea-blue);
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.header-button:hover {
+  background: #ffd700;
+  transform: translateY(-2px);
 }
 
 .header-button.hidden {
   display: none;
 }
 
-.header-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-/* Main Layout */
+/* ========== MAIN LAYOUT ========== */
 
 .app-main {
-  padding: 20px;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-/* Buttons */
+/* ========== BUTTONS ========== */
 
 .btn {
-  border-radius: 999px;
-  padding: 10px 22px;
+  border-radius: 50px;
+  padding: 12px 28px;
   border: none;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  transition: all 0.2s;
+  font-family: 'Noto Sans', sans-serif;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+  transform: translateY(0);
 }
 
 .btn-primary {
-  background: var(--ikea-blue);
+  background: var(--ikea-green);
   color: var(--ikea-white);
-  font-weight: 700;
 }
 
 .btn-primary:hover {
-  background: #003d8f;
-}
-
-.btn-primary:disabled {
-  background: var(--ikea-gray);
-  cursor: default;
-  transform: none;
-  box-shadow: none;
+  background: #007038;
 }
 
 .btn-add {
-  background: var(--ikea-yellow);
-  color: var(--ikea-black);
-  font-weight: 700;
-  margin-bottom: 16px;
+  background: var(--pink-medium);
+  color: var(--ikea-white);
+  margin-bottom: 20px;
+  font-size: 1.05rem;
 }
 
-.btn-secondary {
-  background: #e0e0e0;
-  color: #333;
+.btn-add:hover {
+  background: #ff6b9d;
 }
 
 .btn-danger {
   background: var(--ikea-red);
   color: var(--ikea-white);
-  font-weight: 700;
+}
+
+.btn-danger:hover {
+  background: #c00646;
 }
 
 .btn-small {
-  padding: 6px 12px;
-  font-size: 0.85rem;
+  padding: 8px 18px;
+  font-size: 0.9rem;
 }
 
-/* Einstellungen */
+/* ========== CONFIG VIEW ========== */
+
+#configView {
+  display: block;
+}
 
 .config-layout {
-  display: flex;
-  gap: 40px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 32px;
+  align-items: start;
 }
 
 .config-left {
-  flex: 2;
+  background: var(--ikea-white);
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .config-right {
-  flex: 1;
-  font-size: 0.95rem;
-  color: #555;
+  background: var(--ikea-white);
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 24px;
 }
 
-.config-right p + p {
-  margin-top: 12px;
+.config-right p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.6;
 }
 
 .config-right .btn-primary {
   margin-top: 24px;
+  width: 100%;
+  padding: 14px;
+  font-size: 1.05rem;
 }
 
-/* Tabelle */
+/* ========== PRODUCT TABLE ========== */
 
 .product-table {
   width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  border-radius: 6px;
-  overflow: hidden;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.product-table th,
-.product-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #eee;
+.product-table th {
+  background: var(--ikea-light-gray);
+  padding: 12px 16px;
   text-align: left;
+  font-weight: 600;
   font-size: 0.9rem;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--ikea-blue);
 }
 
-.product-table thead {
-  background: var(--ikea-blue);
-  color: var(--ikea-white);
-  font-weight: 700;
+.product-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+.product-table tbody tr:hover {
+  background: var(--ikea-light-gray);
 }
 
 .product-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.product-table input[type="text"],
-.product-table input[type="number"] {
+.product-table input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--ikea-blue);
+}
+
+.product-table input[type="text"] {
   width: 100%;
-  padding: 4px 6px;
+  padding: 8px 12px;
   border-radius: 4px;
   border: 1px solid #ddd;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-family: 'Noto Sans', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.product-table input[type="text"]:focus {
+  outline: none;
+  border-color: var(--ikea-blue);
+  box-shadow: 0 0 0 2px rgba(0, 81, 186, 0.1);
 }
 
 .product-table input[type="number"] {
-  max-width: 60px;
+  width: 70px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+  text-align: center;
+  font-family: 'Noto Sans', sans-serif;
+  transition: border-color 0.2s;
 }
 
-.product-table .delete-btn {
+.product-table input[type="number"]:focus {
+  outline: none;
+  border-color: var(--ikea-blue);
+  box-shadow: 0 0 0 2px rgba(0, 81, 186, 0.1);
+}
+
+.delete-btn {
   background: none;
   border: none;
   color: var(--ikea-red);
-  font-size: 1rem;
+  font-size: 1.3rem;
   cursor: pointer;
+  padding: 4px 8px;
+  transition: all 0.2s;
+  border-radius: 4px;
 }
 
-/* Timer-Ansicht */
+.delete-btn:hover {
+  background: rgba(224, 7, 81, 0.1);
+  transform: scale(1.2);
+}
+
+/* ========== TIMER VIEW ========== */
 
 .hidden {
-  display: none;
+  display: none !important;
+}
+
+#timerView {
+  display: block;
 }
 
 .timer-container {
-  background: #fff;
-  border-radius: 6px;
-  padding: 16px 16px 40px;
+  background: var(--ikea-white);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.timer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .timer-row {
   display: grid;
-  grid-template-columns: 1.5fr 2fr 0.8fr 0.8fr;
-  gap: 12px;
+  grid-template-columns: 250px 1fr 140px 100px 100px;
+  gap: 16px;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--ikea-light-gray);
+  transition: all 0.2s;
 }
 
-.timer-row:last-child {
-  border-bottom: none;
+.timer-row:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* ========== TIMER NAME ========== */
 
 .timer-name {
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-primary);
 }
 
-.timer-name--running {
-  background: var(--ikea-yellow);
-  color: var(--ikea-black);
-  font-weight: 700;
+.timer-name-label {
   display: inline-block;
-  padding: 4px 8px;
-  border-radius: 3px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: all 0.3s;
 }
 
-.timer-time {
-  font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  text-align: center;
+.timer-name-label.running {
+  background: var(--pink-light);
+  animation: nameBlink 1s ease-in-out infinite;
 }
 
-/* Progress Bar */
+.timer-name-label.expired {
+  background: var(--ikea-red);
+  color: var(--ikea-white);
+  animation: nameBlink 1s ease-in-out infinite;
+}
+
+@keyframes nameBlink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ========== PROGRESS BAR ========== */
 
 .progress-wrapper {
-  background: #f0f0f0;
-  border-radius: 4px;
+  background: #e0e0e0;
+  border-radius: 8px;
   overflow: hidden;
-  height: 18px;
+  height: 24px;
+  position: relative;
 }
 
 .progress-bar {
   height: 100%;
-  width: 0%;
+  width: 100%;
   background: var(--ikea-green);
-  transition: width 0.3s linear, background 0.3s;
+  transition: width 0.5s linear, background 0.3s;
+  border-radius: 8px;
+}
+
+.progress-bar.running {
+  background: var(--ikea-blue);
 }
 
 .progress-bar.expired {
   background: var(--ikea-red);
-  animation: blinkBar 0.8s ease-in-out infinite;
+  animation: progressBlink 1s ease-in-out infinite;
 }
 
-@keyframes blinkBar {
+@keyframes progressBlink {
   0%, 100% {
     opacity: 1;
-    transform: scaleY(1);
   }
   50% {
-    opacity: 0.3;
-    transform: scaleY(0.95);
+    opacity: 0.2;
   }
 }
 
-@keyframes blinkRow {
-  0%, 100% {
-    background-color: transparent;
-  }
-  50% {
-    background-color: rgba(224, 7, 81, 0.1);
-  }
+/* ========== TIMER TIME ========== */
+
+.timer-time {
+  font-family: 'Courier New', monospace;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-primary);
+  letter-spacing: 1px;
 }
 
-.timer-row.expired {
-  animation: blinkRow 1s ease-in-out infinite;
-}
+/* ========== RESPONSIVE ========== */
 
-/* Responsive */
+@media (max-width: 1200px) {
+  .config-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .config-right {
+    position: static;
+  }
+
+  .timer-row {
+    grid-template-columns: 200px 1fr 120px 90px 90px;
+    gap: 12px;
+  }
+}
 
 @media (max-width: 900px) {
-  .config-layout {
-    flex-direction: column;
+  .app-header {
+    padding: 12px 20px;
   }
 
-  .timer-row {
-    grid-template-columns: 1.2fr 1.4fr 0.8fr 0.8fr;
-    font-size: 0.9rem;
+  .app-title {
+    font-size: 1.5rem;
   }
-}
 
-@media (max-width: 600px) {
   .timer-row {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 10px;
   }
 
   .timer-time {
     text-align: left;
   }
+
+  .product-table input[type="number"] {
+    width: 60px;
+  }
 }
+
+@media (max-width: 600px) {
+  .app-main {
+    padding: 16px;
+  }
+
+  .header-right {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .config-left,
+  .config-right {
+    padding: 16px;
+  }
+
+  .product-table th,
+  .product-table td {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ========== FULLSCREEN MODE ========== */
+
+:fullscreen {
+  background: var(--ikea-light-gray);
+}
+
+:-webkit-full-screen {
+  background: var(--ikea-light-gray);
+}
+
+:-moz-full-screen {
+  background: var(--ikea-light-gray);
+}
+```
