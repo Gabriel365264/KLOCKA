@@ -704,26 +704,37 @@
     }
 
     function updateRowUI(id) {
-      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
-      const timer = timers[id];
-      if (!row || !timer) return;
+  const row = document.querySelector('.timer-row[data-id="' + id + '"]');
+  const timer = timers[id];
+  if (!row || !timer) return;
 
-      const timeDiv = row._timeDiv;
-      const progressBar = row._progressBar;
+  const timeDiv = row._timeDiv;
+  const progressBar = row._progressBar;
 
-      timeDiv.textContent = formatDuration(timer.remainingMs);
-      const ratio = timer.totalMs > 0 ? timer.remainingMs / timer.totalMs : 0;
-      const percent = Math.max(0, Math.min(100, ratio * 100));
-      progressBar.style.width = percent + '%';
+  // Zeit anzeigen (läuft weiter rückwärts)
+  timeDiv.textContent = formatDuration(timer.remainingMs);
 
-      const expired = timer.remainingMs <= 0;
+  // Balken: aufsteigend von links nach rechts
+  const elapsed = Math.max(0, timer.totalMs - timer.remainingMs);
+  let ratio = 0;
+  if (timer.totalMs > 0) {
+    ratio = elapsed / timer.totalMs;
+  }
+  let percent = Math.max(0, Math.min(100, ratio * 100));
 
-      if (expired) {
-        progressBar.classList.add('expired');   // rot + blinken
-      } else {
-        progressBar.classList.remove('expired');
-      }
-    }
+  const expired = timer.remainingMs <= 0;
+
+  if (expired) {
+    // Voller Balken, rot blinkend
+    percent = 100;
+    progressBar.classList.add('expired');
+  } else {
+    progressBar.classList.remove('expired');
+  }
+
+  progressBar.style.width = percent + '%';
+}
+
 
     function startLoop() {
       setInterval(() => {
@@ -791,3 +802,4 @@
   </script>
 </body>
 </html>
+
