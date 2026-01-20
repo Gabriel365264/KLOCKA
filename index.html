@@ -344,6 +344,7 @@
     // --- Konfiguration & Texte ---
 
     const DEFAULT_PRODUCTS = [
+      const MAX_ACTIVE_PRODUCTS = 5;
       { name: "Veggie Dog", hours: 0, minutes: 20, active: true },
       { name: "Plant Dog", hours: 0, minutes: 20, active: true },
       { name: "Geflügel Dog", hours: 0, minutes: 50, active: true },
@@ -526,13 +527,26 @@
         row.dataset.id = p.id;
 
         const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.checked = !!p.active;
-        cb.addEventListener('change', () => {
-          p.active = cb.checked;
-          saveProducts();
-          renderTimerView();
-        });
+cb.type = 'checkbox';
+cb.checked = !!p.active;
+cb.addEventListener('change', () => {
+  // Wenn der Nutzer AN-klicken will, Maximalzahl prüfen
+  if (cb.checked) {
+    const activeCount = products.filter(prod => prod.active && prod.id !== p.id).length;
+    if (activeCount >= MAX_ACTIVE_PRODUCTS) {
+      // Auswahl rückgängig machen
+      cb.checked = false;
+      // Optional: kurze Meldung
+      alert(`Es können maximal ${MAX_ACTIVE_PRODUCTS} Produkte gleichzeitig ausgewählt werden.`);
+      return;
+    }
+  }
+
+  p.active = cb.checked;
+  saveProducts();
+  renderTimerView();
+});
+
 
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
@@ -802,4 +816,5 @@
   </script>
 </body>
 </html>
+
 
