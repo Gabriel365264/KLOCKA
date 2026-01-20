@@ -31,6 +31,7 @@
     body {
       background: var(--bg-light);
       color: var(--text-main);
+      line-height: 1.5;
     }
 
     /* HEADER */
@@ -49,7 +50,7 @@
 
     .app-title {
       font-size: 1.6rem;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .header-right {
@@ -208,57 +209,66 @@
     .timer-container {
       background: var(--panel-bg);
       border-radius: 6px;
-      padding: 16px 16px 32px;
+      padding: 8px 0 24px 0; /* links/rechts ohne Padding -> Balken geht bis Rand des Panels */
       box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     }
 
     .timer-row {
       display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 2.2fr) 110px 110px;
+      grid-template-columns: minmax(0, 1fr) 120px 120px; /* Balken + Start + Stop */
       gap: 12px;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #eee;
+      padding: 4px 16px;
       font-size: 0.95rem;
     }
 
-    .timer-row:last-child { border-bottom: none; }
+    .timer-row:last-child { margin-bottom: 0; }
+
+    /* Neuer Aufbau: Balken umfasst Name + Zeit */
+    .timer-bar {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .timer-bar-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0; /* wird per JS gesetzt */
+      background: var(--accent-pink);
+      transition: width 0.3s linear;
+      z-index: 0;
+    }
+
+    .timer-bar-fill.expired {
+      background: var(--accent-red);
+      animation: blink 1s linear infinite;
+    }
+
+    .timer-bar-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 12px;
+    }
 
     .timer-name {
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .timer-name-highlight {
-      background: var(--accent-pink);
-      padding: 4px 8px;
-      border-radius: 3px;
-      display: inline-block;
+      /* optional zusätzliche Hervorhebung, falls gewünscht */
     }
 
     .timer-time {
       font-family: "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      text-align: center;
+      text-align: right;
       font-size: 1.1rem;
       font-weight: 600;
-    }
-
-    .progress-wrapper {
-      background: #eee;
-      border-radius: 12px;
-      overflow: hidden;
-      height: 18px;
-    }
-
-    .progress-bar {
-      height: 100%;
-      width: 0;
-      background: var(--accent-green);
-      transition: width 0.3s linear;
-    }
-
-    .progress-bar.expired {
-      background: var(--accent-red);
-      animation: blink 1s linear infinite;
     }
 
     @keyframes blink {
@@ -267,8 +277,8 @@
     }
 
     .btn-start {
-      background: var(--accent-green);
-      color: #fff;
+      background: #f5f5f5;
+      color: var(--accent-green);
     }
 
     .btn-stop {
@@ -276,17 +286,28 @@
       color: #fff;
     }
 
+    .btn-start,
+    .btn-stop {
+      border-radius: 999px;
+      border: none;
+      padding: 10px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
     @media (max-width: 900px) {
       .config-layout { flex-direction: column; }
       .timer-row {
-        grid-template-columns: minmax(0,2fr) minmax(0,2fr);
-        grid-template-rows: auto auto;
+        grid-template-columns: minmax(0,2fr);
+        grid-template-rows: auto auto auto;
       }
     }
 
     @media (max-width: 600px) {
       .app-main { padding: 16px; }
       .app-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .timer-row { padding-inline: 8px; }
     }
   </style>
 </head>
@@ -597,22 +618,27 @@
         row.className = 'timer-row';
         row.dataset.id = p.id;
 
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'timer-name';
-        const nameLabel = document.createElement('span');
-        nameLabel.textContent = p.name;
-        nameDiv.appendChild(nameLabel);
+        // Balken mit Name + Zeit
+        const bar = document.createElement('div');
+        bar.className = 'timer-bar';
 
-        const progressContainer = document.createElement('div');
-        const progressWrapper = document.createElement('div');
-        progressWrapper.className = 'progress-wrapper';
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressWrapper.appendChild(progressBar);
-        const timeDiv = document.createElement('div');
+        const barFill = document.createElement('div');
+        barFill.className = 'timer-bar-fill';
+
+        const barContent = document.createElement('div');
+        barContent.className = 'timer-bar-content';
+
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'timer-name';
+        nameLabel.textContent = p.name;
+
+        const timeDiv = document.createElement('span');
         timeDiv.className = 'timer-time';
-        progressContainer.appendChild(progressWrapper);
-        progressContainer.appendChild(timeDiv);
+
+        barContent.appendChild(nameLabel);
+        barContent.appendChild(timeDiv);
+        bar.appendChild(barFill);
+        bar.appendChild(barContent);
 
         const startBtn = document.createElement('button');
         startBtn.className = 'btn btn-start';
@@ -622,13 +648,13 @@
         stopBtn.className = 'btn btn-stop';
         stopBtn.textContent = t.stop;
 
-        row.appendChild(nameDiv);
-        row.appendChild(progressContainer);
+        row.appendChild(bar);
         row.appendChild(startBtn);
         row.appendChild(stopBtn);
 
+        // Referenzen für Update
         row._nameLabel = nameLabel;
-        row._progressBar = progressBar;
+        row._progressBar = barFill;
         row._timeDiv = timeDiv;
 
         startBtn.addEventListener('click', () => startTimer(p.id));
@@ -644,115 +670,4 @@
     function startTimer(id) {
       const timer = timers[id];
       if (!timer) return;
-      timer.remainingMs = timer.totalMs;
-      timer.running = true;
-      timer.endTimeMs = Date.now() + timer.remainingMs;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function stopTimer(id) {
-      const timer = timers[id];
-      if (!timer) return;
-      timer.running = false;
-      timer.remainingMs = timer.totalMs;
-      timer.endTimeMs = null;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function updateRowUI(id) {
-      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
-      const timer = timers[id];
-      if (!row || !timer) return;
-
-      const timeDiv = row._timeDiv;
-      const progressBar = row._progressBar;
-      const nameLabel = row._nameLabel;
-
-      timeDiv.textContent = formatDuration(timer.remainingMs);
-      const ratio = timer.totalMs > 0 ? timer.remainingMs / timer.totalMs : 0;
-      const percent = Math.max(0, Math.min(100, ratio * 100));
-      progressBar.style.width = percent + '%';
-
-      const expired = timer.remainingMs <= 0;
-
-      if (expired) {
-        progressBar.classList.add('expired');
-        nameLabel.classList.add('timer-name-highlight');
-      } else {
-        progressBar.classList.remove('expired');
-        if (timer.running) {
-          nameLabel.classList.add('timer-name-highlight');
-        } else {
-          nameLabel.classList.remove('timer-name-highlight');
-        }
-      }
-    }
-
-    function startLoop() {
-      setInterval(() => {
-        const now = Date.now();
-        let changed = false;
-        for (const [id, timer] of Object.entries(timers)) {
-          if (!timer.running || !timer.endTimeMs) continue;
-          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
-          if (timer.remainingMs <= 0) {
-            timer.running = false;
-            timer.endTimeMs = null;
-          }
-          updateRowUI(id);
-          changed = true;
-        }
-        if (changed) saveTimers();
-      }, 500);
-    }
-
-    function updateTimerTotal(id) {
-      const p = products.find(x => x.id === id);
-      if (!p) return;
-      const totalMs = (Number(p.hours||0)*60 + Number(p.minutes||0)) * 60 * 1000;
-      if (!timers[id]) {
-        timers[id] = { totalMs, remainingMs: totalMs, running: false, endTimeMs: null };
-      } else {
-        timers[id].totalMs = totalMs;
-        if (!timers[id].running) timers[id].remainingMs = totalMs;
-      }
-      renderTimerView();
-    }
-
-    function clampInt(v, min, max) {
-      let n = parseInt(v, 10);
-      if (isNaN(n)) n = min;
-      if (n < min) n = min;
-      if (n > max) n = max;
-      return n;
-    }
-
-    function formatDuration(ms) {
-      if (ms <= 0) return '00:00:00';
-      const totalSeconds = Math.floor(ms / 1000);
-      const h = Math.floor(totalSeconds / 3600);
-      const m = Math.floor((totalSeconds % 3600) / 60);
-      const s = totalSeconds % 60;
-      return String(h).padStart(2,'0') + ':' +
-             String(m).padStart(2,'0') + ':' +
-             String(s).padStart(2,'0');
-    }
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen();
-        }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-      }
-    }
-  </script>
-</body>
-</html>
-
-
+      timer.remainingMs = ti
