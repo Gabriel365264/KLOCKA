@@ -341,6 +341,8 @@
   </main>
 
   <script>
+    // --- Konfiguration & Texte ---
+
     const DEFAULT_PRODUCTS = [
       { name: "Veggie Dog", hours: 0, minutes: 20, active: true },
       { name: "Plant Dog", hours: 0, minutes: 20, active: true },
@@ -388,11 +390,404 @@
     let nextId = 1;
     let timers = {}; // id -> { totalMs, remainingMs, running, endTimeMs }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    // --- Startpunkt der App ---
+
+    function init() {
+      console.log('Klocka init');
       loadProducts();
       loadTimers();
       applyLanguage();
       renderConfigView();
       renderTimerView();
       setupEvents();
-      
+      startLoop();
+    }
+
+    // Script steht am Ende des Body -> DOM ist schon da
+    init();
+
+    // --- Daten laden / speichern ---
+
+    function loadProducts() {
+      const stored = localStorage.getItem(STORAGE_KEYS.products);
+      if (stored) {
+        products = JSON.parse(stored);
+      } else {
+        products = DEFAULT_PRODUCTS.map((p, i) => ({ id: i + 1, ...p }));
+      }
+      nextId = products.reduce((m,p)=>Math.max(m,p.id||0),0)+1;
+    }
+
+    function saveProducts() {
+      localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(products));
+    }
+
+    function loadTimers() {
+      const stored = localStorage.getItem(STORAGE_KEYS.timers);
+      if (!stored) return;
+      try {
+        const obj = JSON.parse(stored);
+        const now = Date.now();
+        for (const [id, t] of Object.entries(obj)) {
+          if (!t.totalMs) continue;
+          if (t.running && t.endTimeMs) {
+            const remaining = Math.max(0, t.endTimeMs - now);
+            timers[id] = {
+              totalMs: t.totalMs,
+              remainingMs: remaining,
+              running: remaining > 0,
+              endTimeMs: remaining > 0 ? t.endTimeMs : null
+            };
+          } else {
+            timers[id] = {
+              totalMs: t.totalMs,
+              remainingMs: t.remainingMs || t.totalMs,
+              running: false,
+              endTimeMs: null
+            };
+          }
+        }
+      } catch(e) {
+        console.error('Fehler beim Laden der Timer', e);
+        timers = {};
+      }
+    }
+
+    function saveTimers() {
+      localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
+    }
+
+    // --- Events & Sprache ---
+
+    function setupEvents() {
+      document.getElementById('btnAddProduct').addEventListener('click', () => {
+        products.push({ id: nextId++, name: '', hours: 0, minutes: 0, active: true });
+        saveProducts();
+        renderConfigView();
+        renderTimerView();
+      });
+
+      document.getElementById('btnToTimer').addEventListener('click', () => {
+        showTimerView();
+      });
+
+      document.getElementById('btnToConfig').addEventListener('click', () => {
+        showConfigView();
+      });
+
+      document.getElementById('btnLanguage').addEventListener('click', () => {
+        currentLang = currentLang === 'de' ? 'en' : 'de';
+        localStorage.setItem(STORAGE_KEYS.lang, currentLang);
+        applyLanguage();
+        renderConfigView();
+        renderTimerView();
+      });
+
+      document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+    }
+
+    function applyLanguage() {
+      const t = I18N[currentLang];
+      document.getElementById('titleText').textContent = t.title;
+      document.getElementById('btnAddProduct').textContent = t.addProduct;
+      document.getElementById('infoText1').textContent = t.info1;
+      document.getElementById('infoText2').textContent = t.info2;
+      document.getElementById('btnToTimer').textContent = t.ready;
+      document.getElementById('btnToConfig').textContent = t.setTime;
+      document.getElementById('btnLanguage').textContent =
+        currentLang === 'de' ? '🇩🇪 / EN' : 'DE / 🇬🇧';
+    }
+
+    // --- View-Umschaltung ---
+
+    function showTimerView() {
+      document.getElementById('configView').classList.add('hidden');
+      document.getElementById('timerView').classList.remove('hidden');
+      document.getElementById('btnToConfig').classList.remove('hidden');
+      document.body.classList.add('timer-mode');
+    }
+
+    function showConfigView() {
+      document.getElementById('configView').classList.remove('hidden');
+      document.getElementById('timerView').classList.add('hidden');
+      document.getElementById('btnToConfig').classList.add('hidden');
+      document.body.classList.remove('timer-mode');
+    }
+
+    // --- Config-Ansicht ---
+
+    function renderConfigView() {
+      const container = document.getElementById('productList');
+      container.innerHTML = '';
+
+      products.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'product-row';
+        row.dataset.id = p.id;
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!p.active;
+        cb.addEventListener('change', () => {
+          p.active = cb.checked;
+          saveProducts();
+          renderTimerView();
+        });
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'product-name-input';
+        nameInput.value = p.name;
+        nameInput.placeholder = currentLang === 'de' ? 'Produkt' : 'Product';
+        nameInput.addEventListener('change', () => {
+          p.name = nameInput.value;
+          saveProducts();
+          renderTimerView();
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-btn';
+        delBtn.textContent = '×';
+        delBtn.addEventListener('click', () => {
+          products = products.filter(x => x.id !== p.id);
+          delete timers[p.id];
+          saveProducts();
+          saveTimers();
+          renderConfigView();
+          renderTimerView();
+        });
+
+        const hoursInput = document.createElement('input');
+        hoursInput.type = 'number';
+        hoursInput.className = 'time-input';
+        hoursInput.min = 0;
+        hoursInput.value = p.hours || 0;
+        hoursInput.addEventListener('change', () => {
+          p.hours = clampInt(hoursInput.value, 0, 99);
+          hoursInput.value = p.hours;
+          saveProducts();
+          updateTimerTotal(p.id);
+        });
+
+        const sep = document.createElement('div');
+        sep.className = 'time-separator';
+        sep.textContent = ':';
+
+        const minutesInput = document.createElement('input');
+        minutesInput.type = 'number';
+        minutesInput.className = 'time-input';
+        minutesInput.min = 0;
+        minutesInput.max = 59;
+        minutesInput.value = p.minutes || 0;
+        minutesInput.addEventListener('change', () => {
+          p.minutes = clampInt(minutesInput.value, 0, 59);
+          minutesInput.value = p.minutes;
+          saveProducts();
+          updateTimerTotal(p.id);
+        });
+
+        row.appendChild(cb);
+        row.appendChild(nameInput);
+        row.appendChild(delBtn);
+        row.appendChild(hoursInput);
+        row.appendChild(sep);
+        row.appendChild(minutesInput);
+
+        container.appendChild(row);
+      });
+    }
+
+    // --- Timer-Ansicht ---
+
+    function renderTimerView() {
+      const container = document.getElementById('timerList');
+      container.innerHTML = '';
+      const t = I18N[currentLang];
+
+      const active = products.filter(p => p.active && (p.name || '').trim() !== '');
+      if (active.length === 0) {
+        const msg = document.createElement('p');
+        msg.textContent = t.noProducts;
+        container.appendChild(msg);
+        return;
+      }
+
+      active.forEach(p => {
+        const totalMs = (Number(p.hours||0)*60 + Number(p.minutes||0)) * 60 * 1000;
+        if (!timers[p.id]) {
+          timers[p.id] = {
+            totalMs: totalMs,
+            remainingMs: totalMs,
+            running: false,
+            endTimeMs: null
+          };
+        } else {
+          timers[p.id].totalMs = totalMs;
+          if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
+            timers[p.id].remainingMs = totalMs;
+          }
+        }
+
+        const row = document.createElement('div');
+        row.className = 'timer-row';
+        row.dataset.id = p.id;
+
+        // Balken mit Name + Zeit
+        const bar = document.createElement('div');
+        bar.className = 'timer-bar';
+
+        const barFill = document.createElement('div');
+        barFill.className = 'timer-bar-fill';
+
+        const barContent = document.createElement('div');
+        barContent.className = 'timer-bar-content';
+
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'timer-name';
+        nameLabel.textContent = p.name;
+
+        const timeDiv = document.createElement('span');
+        timeDiv.className = 'timer-time';
+
+        barContent.appendChild(nameLabel);
+        barContent.appendChild(timeDiv);
+        bar.appendChild(barFill);
+        bar.appendChild(barContent);
+
+        const startBtn = document.createElement('button');
+        startBtn.className = 'btn btn-start';
+        startBtn.textContent = t.start;
+
+        const stopBtn = document.createElement('button');
+        stopBtn.className = 'btn btn-stop';
+        stopBtn.textContent = t.stop;
+
+        row.appendChild(bar);
+        row.appendChild(startBtn);
+        row.appendChild(stopBtn);
+
+        // Referenzen für Updates speichern
+        row._nameLabel = nameLabel;
+        row._progressBar = barFill;
+        row._timeDiv = timeDiv;
+
+        startBtn.addEventListener('click', () => startTimer(p.id));
+        stopBtn.addEventListener('click', () => stopTimer(p.id));
+
+        container.appendChild(row);
+        updateRowUI(p.id);
+      });
+
+      saveTimers();
+    }
+
+    // --- Timer-Logik ---
+
+    function startTimer(id) {
+      const timer = timers[id];
+      if (!timer) return;
+      timer.remainingMs = timer.totalMs;
+      timer.running = true;
+      timer.endTimeMs = Date.now() + timer.remainingMs;
+      updateRowUI(id);
+      saveTimers();
+    }
+
+    function stopTimer(id) {
+      const timer = timers[id];
+      if (!timer) return;
+      timer.running = false;
+      timer.remainingMs = timer.totalMs;
+      timer.endTimeMs = null;
+      updateRowUI(id);
+      saveTimers();
+    }
+
+    function updateRowUI(id) {
+      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
+      const timer = timers[id];
+      if (!row || !timer) return;
+
+      const timeDiv = row._timeDiv;
+      const progressBar = row._progressBar;
+
+      timeDiv.textContent = formatDuration(timer.remainingMs);
+      const ratio = timer.totalMs > 0 ? timer.remainingMs / timer.totalMs : 0;
+      const percent = Math.max(0, Math.min(100, ratio * 100));
+      progressBar.style.width = percent + '%';
+
+      const expired = timer.remainingMs <= 0;
+
+      if (expired) {
+        progressBar.classList.add('expired');   // rot + blinken
+      } else {
+        progressBar.classList.remove('expired');
+      }
+    }
+
+    function startLoop() {
+      setInterval(() => {
+        const now = Date.now();
+        let changed = false;
+        for (const [id, timer] of Object.entries(timers)) {
+          if (!timer.running || !timer.endTimeMs) continue;
+          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
+          if (timer.remainingMs <= 0) {
+            timer.running = false;
+            timer.endTimeMs = null;
+          }
+          updateRowUI(id);
+          changed = true;
+        }
+        if (changed) saveTimers();
+      }, 500);
+    }
+
+    // --- Hilfsfunktionen ---
+
+    function updateTimerTotal(id) {
+      const p = products.find(x => x.id === id);
+      if (!p) return;
+      const totalMs = (Number(p.hours||0)*60 + Number(p.minutes||0)) * 60 * 1000;
+      if (!timers[id]) {
+        timers[id] = { totalMs, remainingMs: totalMs, running: false, endTimeMs: null };
+      } else {
+        timers[id].totalMs = totalMs;
+        if (!timers[id].running) timers[id].remainingMs = totalMs;
+      }
+      renderTimerView();
+    }
+
+    function clampInt(v, min, max) {
+      let n = parseInt(v, 10);
+      if (isNaN(n)) n = min;
+      if (n < min) n = min;
+      if (n > max) n = max;
+      return n;
+    }
+
+    function formatDuration(ms) {
+      if (ms <= 0) return '00:00:00';
+      const totalSeconds = Math.floor(ms / 1000);
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return String(h).padStart(2,'0') + ':' +
+             String(m).padStart(2,'0') + ':' +
+             String(s).padStart(2,'0');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+  </script>
+</body>
+</html>
