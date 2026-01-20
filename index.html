@@ -526,27 +526,14 @@
         row.className = 'product-row';
         row.dataset.id = p.id;
 
-        const cb = document.createElement('input');
+const cb = document.createElement('input');
 cb.type = 'checkbox';
 cb.checked = !!p.active;
 cb.addEventListener('change', () => {
-  // Wenn der Nutzer AN-klicken will, Maximalzahl prüfen
-  if (cb.checked) {
-    const activeCount = products.filter(prod => prod.active && prod.id !== p.id).length;
-    if (activeCount >= MAX_ACTIVE_PRODUCTS) {
-      // Auswahl rückgängig machen
-      cb.checked = false;
-      // Optional: kurze Meldung
-      alert(`Es können maximal ${MAX_ACTIVE_PRODUCTS} Produkte gleichzeitig ausgewählt werden.`);
-      return;
-    }
-  }
-
   p.active = cb.checked;
   saveProducts();
   renderTimerView();
 });
-
 
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
@@ -816,5 +803,6 @@ cb.addEventListener('change', () => {
   </script>
 </body>
 </html>
+
 
 
