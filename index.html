@@ -349,6 +349,9 @@
     </section>
   </main>
 
+  <!-- Stummes Audio für Kiosk-Wachhalten -->
+  <audio id="keepAlive" src="silence.mp3" loop style="display:none"></audio>
+
   <script>
     // --- Konfiguration & Texte ---
 
@@ -398,7 +401,36 @@
     let products = [];
     let nextId = 1;
     let timers = {}; // id -> { totalMs, remainingMs, running, endTimeMs }
-    let wakeLock = null; // Variable for the Screen Wake Lock
+
+    // --- Fullscreen & Audio-Workaround (vor setupEvents definiert!) ---
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    function handleFullscreenChange() {
+      const audio = document.getElementById('keepAlive');
+      if (!audio) return;
+
+      if (document.fullscreenElement) {
+        // Vollbild: stummes Audio starten
+        audio.play().catch(err => {
+          console.warn('Audio keepAlive konnte nicht gestartet werden:', err);
+        });
+      } else {
+        // Vollbild verlassen: Audio stoppen
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    }
 
     // --- Startpunkt der App ---
 
@@ -493,10 +525,9 @@
         renderTimerView();
       });
 
-      // Fullscreen and Wake Lock events
+      // Fullscreen + Audio
       document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
       document.addEventListener('fullscreenchange', handleFullscreenChange);
-      document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
     function applyLanguage() {
@@ -791,59 +822,6 @@
              String(m).padStart(2,'0') + ':' +
              String(s).padStart(2,'0');
     }
-
-    // --- Fullscreen & Screen Wake Lock API ---
-
-    // Function to request the wake lock
-    const requestWakeLock = async () => {
-      try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        wakeLock.addEventListener('release', () => {
-          console.log('Screen Wake Lock was released');
-          wakeLock = null;
-        });
-        console.log('Screen Wake Lock is active');
-      } catch (err) {
-        console.error(`Wake Lock failed: ${err.name}, ${err.message}`);
-      }
-    };
-
-    // Main function to toggle fullscreen
-    async function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        try {
-          await document.documentElement.requestFullscreen();
-        } catch (err) {
-          console.error(`Error attempting to enable full-screen mode: ${err.message}`);
-        }
-      } else {
-        if (document.exitFullscreen) {
-          await document.exitFullscreen();
-        }
-      }
-    }
-
-    // Listener for fullscreen changes
-    const handleFullscreenChange = async () => {
-      if (document.fullscreenElement) {
-        // Entered fullscreen, request wake lock
-        await requestWakeLock();
-      } else {
-        // Exited fullscreen, release wake lock
-        if (wakeLock) {
-          await wakeLock.release();
-          wakeLock = null;
-        }
-      }
-    };
-
-    // Listener for visibility changes (e.g., tab switching)
-    const handleVisibilityChange = async () => {
-      // Re-acquire lock if tab becomes visible and we are still in fullscreen
-      if (wakeLock === null && document.fullscreenElement && document.visibilityState === 'visible') {
-        await requestWakeLock();
-      }
-    };
   </script>
 </body>
 </html>
