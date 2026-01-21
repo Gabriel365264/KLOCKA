@@ -333,6 +333,138 @@
     </section>
   </main>
 
-  <!-- Stummes Audio für Kiosk-Workaround (nur im Fullscreen aktiv) -->
-  <audio id="keepAlive" loop muted style="display:none;">
-    <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADhAC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAA4S8Fy9JAAAAAAAA//sQZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+  <script>
+    // --- Konfiguration & Texte ---
+
+    const STORAGE_KEYS = {
+      products: 'klockaProductsV2',
+      timers:   'klockaTimersV2',
+      lang:     'klockaLang'
+    };
+
+    const I18N = {
+      de: {
+        title: 'Klocka',
+        info1: 'Hier kannst du die Haltezeiten einstellen.',
+        info2: 'Neue Produkte kannst du in die freien Felder eintragen, bitte bestätige dann mit dem grünen Button.',
+        ready: 'Wenn du fertig bist, klicke hier',
+        setTime: 'Zeit einstellen ⏱',
+        start: 'Start',
+        stop: 'Stop',
+        noProducts: 'Keine aktiven Produkte. Bitte unter "Zeit einstellen" konfigurieren.'
+      },
+      en: {
+        title: 'Klocka',
+        info1: 'Here you can set the holding times.',
+        info2: 'You can enter new products into the empty fields, then confirm with the green button.',
+        ready: "When you're finished, click here",
+        setTime: 'Set time ⏱',
+        start: 'Start',
+        stop: 'Stop',
+        noProducts: 'No active products. Please configure under "Set time".'
+      }
+    };
+
+    let currentLang = localStorage.getItem(STORAGE_KEYS.lang) || 'de';
+    let products = [];
+    let nextId = 1;
+    let timers = {};
+
+    // --- Startpunkt der App ---
+
+    function init() {
+      console.log('Klocka init');
+      loadProducts();
+      loadTimers();
+      applyLanguage();
+      renderConfigView();
+      renderTimerView();
+      setupEvents();
+      startLoop();
+    }
+
+    init();
+
+    // --- Daten laden / speichern ---
+
+    function loadProducts() {
+      const stored = localStorage.getItem(STORAGE_KEYS.products);
+      if (stored) {
+        products = JSON.parse(stored);
+      } else {
+        products = Array.from({ length: 5 }, (_, i) => ({
+          id: i + 1,
+          name: '',
+          hours: 0,
+          minutes: 0,
+          active: true
+        }));
+      }
+      nextId = products.reduce((m,p)=>Math.max(m,p.id||0),0)+1;
+    }
+
+    function saveProducts() {
+      localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(products));
+    }
+
+    function loadTimers() {
+      const stored = localStorage.getItem(STORAGE_KEYS.timers);
+      if (!stored) return;
+      try {
+        const obj = JSON.parse(stored);
+        const now = Date.now();
+        for (const [id, t] of Object.entries(obj)) {
+          if (!t.totalMs) continue;
+          if (t.running && t.endTimeMs) {
+            const remaining = Math.max(0, t.endTimeMs - now);
+            timers[id] = {
+              totalMs: t.totalMs,
+              remainingMs: remaining,
+              running: remaining > 0,
+              endTimeMs: remaining > 0 ? t.endTimeMs : null
+            };
+          } else {
+            timers[id] = {
+              totalMs: t.totalMs,
+              remainingMs: t.remainingMs || t.totalMs,
+              running: false,
+              endTimeMs: null
+            };
+          }
+        }
+      } catch(e) {
+        console.error('Fehler beim Laden der Timer', e);
+        timers = {};
+      }
+    }
+
+    function saveTimers() {
+      localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
+    }
+
+    // --- Events & Sprache ---
+
+    function setupEvents() {
+      document.getElementById('btnToTimer').addEventListener('click', () => {
+        showTimerView();
+      });
+
+      document.getElementById('btnToConfig').addEventListener('click', () => {
+        showConfigView();
+      });
+
+      document.getElementById('btnLanguage').addEventListener('click', () => {
+        currentLang = currentLang === 'de' ? 'en' : 'de';
+        localStorage.setItem(STORAGE_KEYS.lang, currentLang);
+        applyLanguage();
+        renderConfigView();
+        renderTimerView();
+      });
+
+      document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+    }
+
+    function applyLanguage() {
+      const t = I18N[currentLang];
+      document.getElementById('titleText').textContent = t.title;
+      document.getElementById('infoText1').textContent
