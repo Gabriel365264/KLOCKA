@@ -777,3 +777,50 @@
         timers[id].totalMs = totalMs;
         if (!timers[id].running) timers[id].remainingMs = totalMs;
       }
+      renderTimerView();
+    }
+
+    function clampInt(v, min, max) {
+      let n = parseInt(v, 10);
+      if (isNaN(n)) n = min;
+      if (n < min) n = min;
+      if (n > max) n = max;
+      return n;
+    }
+
+    function formatDuration(ms) {
+      if (ms <= 0) return '00:00:00';
+      const totalSeconds = Math.floor(ms / 1000);
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return String(h).padStart(2,'0') + ':' +
+             String(m).padStart(2,'0') + ':' +
+             String(s).padStart(2,'0');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    function handleFullscreenChange() {
+      const audio = document.getElementById('keepAlive');
+      if (document.fullscreenElement) {
+        // Entered fullscreen: play silent audio to prevent sleep
+        audio.play().catch(e => console.warn("Audio play for keep-alive was prevented.", e));
+      } else {
+        // Exited fullscreen: stop audio
+        audio.pause();
+      }
+    }
+  </script>
+</body>
+</html>
