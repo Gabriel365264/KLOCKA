@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Klocka – Digitale Eieruhr</title>
+  <title>Klocka_Audio_Workaround</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
 
@@ -303,8 +303,8 @@
     @media (max-width: 900px) {
       .config-layout { flex-direction: column; }
       .timer-row {
-        grid-template-columns: minmax(0,2fr);
-        grid-template-rows: auto auto auto;
+        grid-template-columns: minmax(0,1fr) auto auto;
+        gap: 8px;
       }
     }
 
@@ -312,6 +312,32 @@
       .app-main { padding: 16px; }
       .app-header { flex-direction: column; align-items: flex-start; gap: 8px; }
       .timer-row { padding-inline: 8px; }
+      .timer-row {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "bar"
+          "buttons";
+        gap: 8px;
+      }
+      .timer-bar { grid-area: bar; }
+      .timer-row .btn-start { grid-area: start; }
+      .timer-row .btn-stop { grid-area: stop; }
+      .timer-row > .btn-start, .timer-row > .btn-stop {
+        width: 50%;
+        justify-self: center;
+      }
+       .timer-row > .btn-start {
+        grid-column: 1 / 2;
+      }
+       .timer-row > .btn-stop {
+        grid-column: 2 / 3;
+      }
+       .timer-row {
+          grid-template-columns: 1fr 1fr;
+          grid-template-areas:
+            "bar bar"
+            "start stop";
+        }
     }
   </style>
 </head>
@@ -352,8 +378,6 @@
   <audio id="keepAlive" loop src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU2LjM2LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU2LjQxAAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAARTMu//MUZAYAAAGkAAAAAAAAA0gAAAAA//MUZAgAAAGkAAAAAAAAA0gAAAAA"></audio>
 
   <script>
-    // --- Konfiguration & Texte ---
-
     const DEFAULT_PRODUCTS = [
       { name: "Veggie Dog", hours: 0, minutes: 20, active: true },
       { name: "Plant Dog", hours: 0, minutes: 20, active: true },
@@ -401,8 +425,6 @@
     let nextId = 1;
     let timers = {}; // id -> { totalMs, remainingMs, running, endTimeMs }
 
-    // --- Startpunkt der App ---
-
     function init() {
       console.log('Klocka init');
       loadProducts();
@@ -414,10 +436,7 @@
       startLoop();
     }
 
-    // Script steht am Ende des Body -> DOM ist schon da
-    init();
-
-    // --- Daten laden / speichern ---
+    document.addEventListener('DOMContentLoaded', init);
 
     function loadProducts() {
       const stored = localStorage.getItem(STORAGE_KEYS.products);
@@ -440,7 +459,7 @@
         const obj = JSON.parse(stored);
         const now = Date.now();
         for (const [id, t] of Object.entries(obj)) {
-          if (!t.totalMs) continue;
+          if (!t.totalMs && t.totalMs !== 0) continue;
           if (t.running && t.endTimeMs) {
             const remaining = Math.max(0, t.endTimeMs - now);
             timers[id] = {
@@ -452,7 +471,7 @@
           } else {
             timers[id] = {
               totalMs: t.totalMs,
-              remainingMs: t.remainingMs || t.totalMs,
+              remainingMs: t.remainingMs !== undefined ? t.remainingMs : t.totalMs,
               running: false,
               endTimeMs: null
             };
@@ -468,8 +487,6 @@
       localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
     }
 
-    // --- Events & Sprache ---
-
     function setupEvents() {
       document.getElementById('btnAddProduct').addEventListener('click', () => {
         products.push({ id: nextId++, name: '', hours: 0, minutes: 0, active: true });
@@ -478,13 +495,8 @@
         renderTimerView();
       });
 
-      document.getElementById('btnToTimer').addEventListener('click', () => {
-        showTimerView();
-      });
-
-      document.getElementById('btnToConfig').addEventListener('click', () => {
-        showConfigView();
-      });
+      document.getElementById('btnToTimer').addEventListener('click', showTimerView);
+      document.getElementById('btnToConfig').addEventListener('click', showConfigView);
 
       document.getElementById('btnLanguage').addEventListener('click', () => {
         currentLang = currentLang === 'de' ? 'en' : 'de';
@@ -510,8 +522,6 @@
         currentLang === 'de' ? '🇩🇪 / EN' : 'DE / 🇬🇧';
     }
 
-    // --- View-Umschaltung ---
-
     function showTimerView() {
       document.getElementById('configView').classList.add('hidden');
       document.getElementById('timerView').classList.remove('hidden');
@@ -521,12 +531,10 @@
 
     function showConfigView() {
       document.getElementById('configView').classList.remove('hidden');
-      document.getElementById('timerView').classList.add('hidden');
+      document.getElementById('timerView').add('hidden');
       document.getElementById('btnToConfig').classList.add('hidden');
       document.body.classList.remove('timer-mode');
     }
-
-    // --- Config-Ansicht ---
 
     function renderConfigView() {
       const container = document.getElementById('productList');
@@ -598,18 +606,10 @@
           updateTimerTotal(p.id);
         });
 
-        row.appendChild(cb);
-        row.appendChild(nameInput);
-        row.appendChild(delBtn);
-        row.appendChild(hoursInput);
-        row.appendChild(sep);
-        row.appendChild(minutesInput);
-
+        row.append(cb, nameInput, delBtn, hoursInput, sep, minutesInput);
         container.appendChild(row);
       });
     }
-
-    // --- Timer-Ansicht ---
 
     function renderTimerView() {
       const container = document.getElementById('timerList');
@@ -620,6 +620,7 @@
       if (active.length === 0) {
         const msg = document.createElement('p');
         msg.textContent = t.noProducts;
+        msg.style.padding = '16px';
         container.appendChild(msg);
         return;
       }
@@ -627,59 +628,41 @@
       active.forEach(p => {
         const totalMs = (Number(p.hours||0)*60 + Number(p.minutes||0)) * 60 * 1000;
         if (!timers[p.id]) {
-          timers[p.id] = {
-            totalMs: totalMs,
-            remainingMs: totalMs,
-            running: false,
-            endTimeMs: null
-          };
+          timers[p.id] = { totalMs: totalMs, remainingMs: totalMs, running: false, endTimeMs: null };
         } else {
-          timers[p.id].totalMs = totalMs;
-          if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
-            timers[p.id].remainingMs = totalMs;
-          }
+            // This logic is mostly defensive. The primary update happens in updateTimerTotal.
+            if (timers[p.id].totalMs !== totalMs && !timers[p.id].running) {
+                timers[p.id].totalMs = totalMs;
+                timers[p.id].remainingMs = totalMs;
+            }
         }
 
         const row = document.createElement('div');
         row.className = 'timer-row';
         row.dataset.id = p.id;
-
-        // Balken mit Name + Zeit
+        
         const bar = document.createElement('div');
         bar.className = 'timer-bar';
-
         const barFill = document.createElement('div');
         barFill.className = 'timer-bar-fill';
-
         const barContent = document.createElement('div');
         barContent.className = 'timer-bar-content';
-
         const nameLabel = document.createElement('span');
         nameLabel.className = 'timer-name';
         nameLabel.textContent = p.name;
-
         const timeDiv = document.createElement('span');
         timeDiv.className = 'timer-time';
-
-        barContent.appendChild(nameLabel);
-        barContent.appendChild(timeDiv);
-        bar.appendChild(barFill);
-        bar.appendChild(barContent);
+        barContent.append(nameLabel, timeDiv);
+        bar.append(barFill, barContent);
 
         const startBtn = document.createElement('button');
         startBtn.className = 'btn btn-start';
         startBtn.textContent = t.start;
-
         const stopBtn = document.createElement('button');
         stopBtn.className = 'btn btn-stop';
         stopBtn.textContent = t.stop;
 
-        row.appendChild(bar);
-        row.appendChild(startBtn);
-        row.appendChild(stopBtn);
-
-        // Referenzen für Updates speichern
-        row._nameLabel = nameLabel;
+        row.append(bar, startBtn, stopBtn);
         row._progressBar = barFill;
         row._timeDiv = timeDiv;
 
@@ -692,8 +675,6 @@
 
       saveTimers();
     }
-
-    // --- Timer-Logik ---
 
     function startTimer(id) {
       const timer = timers[id];
@@ -715,35 +696,24 @@
       saveTimers();
     }
 
-    // Balken aufsteigend, bei Ablauf voll & rot blinkend
     function updateRowUI(id) {
-      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
+      const row = document.querySelector(`.timer-row[data-id="${id}"]`);
       const timer = timers[id];
       if (!row || !timer) return;
 
       const timeDiv = row._timeDiv;
       const progressBar = row._progressBar;
-
-      // Zeit (Countdown)
       timeDiv.textContent = formatDuration(timer.remainingMs);
 
-      // Aufsteigender Balken
       const elapsed = Math.max(0, timer.totalMs - timer.remainingMs);
       let ratio = 0;
       if (timer.totalMs > 0) {
         ratio = elapsed / timer.totalMs;
       }
-      let percent = Math.max(0, Math.min(100, ratio * 100));
+      const percent = Math.min(100, ratio * 100);
 
-      const expired = timer.remainingMs <= 0;
-
-      if (expired) {
-        percent = 100;
-        progressBar.classList.add('expired');   // rot + blinken
-      } else {
-        progressBar.classList.remove('expired');
-      }
-
+      const expired = timer.remainingMs <= 0 && timer.totalMs > 0;
+      progressBar.classList.toggle('expired', expired);
       progressBar.style.width = percent + '%';
     }
 
@@ -753,8 +723,12 @@
         let changed = false;
         for (const [id, timer] of Object.entries(timers)) {
           if (!timer.running || !timer.endTimeMs) continue;
+          
+          const oldRemaining = timer.remainingMs;
           timer.remainingMs = Math.max(0, timer.endTimeMs - now);
-          if (timer.remainingMs <= 0) {
+
+          if (timer.remainingMs <= 0 && oldRemaining > 0) {
+             // Timer just expired
             timer.running = false;
             timer.endTimeMs = null;
           }
@@ -765,32 +739,47 @@
       }, 500);
     }
 
-    // --- Hilfsfunktionen ---
-
     function updateTimerTotal(id) {
-      const p = products.find(x => x.id === id);
-      if (!p) return;
-      const totalMs = (Number(p.hours||0)*60 + Number(p.minutes||0)) * 60 * 1000;
-      if (!timers[id]) {
-        timers[id] = { totalMs, remainingMs: totalMs, running: false, endTimeMs: null };
-      } else {
-        timers[id].totalMs = totalMs;
-        if (!timers[id].running) timers[id].remainingMs = totalMs;
-      }
-      renderTimerView();
+        const p = products.find(x => x.id === id);
+        if (!p) return;
+        const newTotalMs = (Number(p.hours || 0) * 60 + Number(p.minutes || 0)) * 60 * 1000;
+
+        if (!timers[id]) {
+            timers[id] = { totalMs: newTotalMs, remainingMs: newTotalMs, running: false, endTimeMs: null };
+        } else {
+            const timer = timers[id];
+            const oldTotalMs = timer.totalMs;
+
+            if (timer.running && oldTotalMs !== newTotalMs) {
+                // Preserve elapsed time for running timers when duration changes
+                const elapsedMs = oldTotalMs - timer.remainingMs;
+                const newRemainingMs = Math.max(0, newTotalMs - elapsedMs);
+                timer.remainingMs = newRemainingMs;
+                timer.endTimeMs = Date.now() + newRemainingMs;
+
+                // If the new time is less than what has already elapsed, the timer is done.
+                if (newRemainingMs <= 0) {
+                    timer.running = false;
+                    timer.endTimeMs = null;
+                }
+            } else if (!timer.running) {
+                // Reset non-running timers to the new duration
+                timer.remainingMs = newTotalMs;
+            }
+            timer.totalMs = newTotalMs; // Update total duration in all cases
+        }
+        renderTimerView();
     }
 
     function clampInt(v, min, max) {
       let n = parseInt(v, 10);
       if (isNaN(n)) n = min;
-      if (n < min) n = min;
-      if (n > max) n = max;
-      return n;
+      return Math.max(min, Math.min(n, max));
     }
 
     function formatDuration(ms) {
       if (ms <= 0) return '00:00:00';
-      const totalSeconds = Math.floor(ms / 1000);
+      const totalSeconds = Math.ceil(ms / 1000);
       const h = Math.floor(totalSeconds / 3600);
       const m = Math.floor((totalSeconds % 3600) / 60);
       const s = totalSeconds % 60;
@@ -801,23 +790,19 @@
 
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen();
-        }
+        document.documentElement.requestFullscreen().catch(err => {
+          alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+        });
       } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
+        document.exitFullscreen();
       }
     }
 
     function handleFullscreenChange() {
       const audio = document.getElementById('keepAlive');
       if (document.fullscreenElement) {
-        // Entered fullscreen: play silent audio to prevent sleep
         audio.play().catch(e => console.warn("Audio play for keep-alive was prevented.", e));
       } else {
-        // Exited fullscreen: stop audio
         audio.pause();
       }
     }
