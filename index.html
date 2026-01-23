@@ -86,130 +86,11 @@
       font-size: 1.1rem;
     }
 
-    #btnToConfig {
-      background: var(--config-pill);
-      color: #fff;
-      border-radius: 999px;
-      padding-inline: 22px;
-    }
-
     /* MAIN LAYOUT */
     .app-main {
       padding: 24px;
     }
 
-    .hidden { display: none; }
-
-    .config-layout {
-      display: flex;
-      gap: 40px;
-      align-items: flex-start;
-    }
-
-    .config-left { flex: 2; }
-    .config-right { flex: 1; }
-
-    .btn {
-      border-radius: 999px;
-      border: none;
-      padding: 10px 22px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-
-    .btn-add {
-      background: var(--accent-add);
-      color: #fff;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .btn-primary {
-      background: var(--accent-green);
-      color: #fff;
-    }
-
-    .btn-primary:disabled {
-      background: #a5d6a7;
-      cursor: default;
-    }
-
-    .info-box {
-      background: var(--panel-bg);
-      border-radius: 8px;
-      padding: 24px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-      font-size: 0.95rem;
-      color: var(--text-muted);
-    }
-
-    .info-box p + p { margin-top: 10px; }
-
-    .info-box .btn-primary {
-      margin-top: 24px;
-      width: 100%;
-      font-size: 1.05rem;
-      padding: 14px 24px;
-      border-radius: 999px;
-    }
-
-    .product-list {
-      background: var(--panel-bg);
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      padding: 12px 0;
-    }
-
-    .product-row {
-      display: grid;
-      grid-template-columns: 32px minmax(0, 1.4fr) 40px 70px 16px 70px;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      border-bottom: 1px solid #eee;
-      font-size: 0.9rem;
-    }
-
-    .product-row:last-child { border-bottom: none; }
-
-    .product-row input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-    }
-
-    .product-name-input {
-      width: 100%;
-      padding: 6px 8px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-      font-size: 0.9rem;
-    }
-
-    .time-input {
-      width: 100%;
-      padding: 6px 4px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-      text-align: center;
-      font-size: 0.9rem;
-    }
-
-    .time-separator {
-      text-align: center;
-      font-weight: 600;
-    }
-
-    .delete-btn {
-      background: none;
-      border: none;
-      color: var(--accent-red);
-      font-size: 1.1rem;
-      cursor: pointer;
-    }
-
-    /* TIMER VIEW */
     .timer-container {
       background: var(--panel-bg);
       border-radius: 0;
@@ -300,14 +181,6 @@
       font-size: 0.95rem;
     }
 
-    @media (max-width: 900px) {
-      .config-layout { flex-direction: column; }
-      .timer-row {
-        grid-template-columns: minmax(0,2fr);
-        grid-template-rows: auto auto auto;
-      }
-    }
-
     @media (max-width: 600px) {
       .app-main { padding: 16px; }
       .app-header { flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -321,28 +194,11 @@
     <div class="header-right">
       <button class="header-button" id="btnLanguage">🇩🇪 / EN</button>
       <button class="header-button" id="btnFullscreen">⛶</button>
-      <button class="header-button hidden" id="btnToConfig">Zeit einstellen ⏱</button>
     </div>
   </header>
 
   <main class="app-main">
-    <section id="configView">
-      <div class="config-layout">
-        <div class="config-left">
-          <button class="btn btn-add" id="btnAddProduct">Produkt hinzufügen</button>
-          <div class="product-list" id="productList"></div>
-        </div>
-        <div class="config-right">
-          <div class="info-box">
-            <p id="infoText1">Hier kannst du die Haltezeiten einstellen.</p>
-            <p id="infoText2">Neue Produkte kannst du in die freien Felder eintragen, bitte bestätige dann mit dem grünen Button.</p>
-            <button class="btn btn-primary" id="btnToTimer">Wenn du fertig bist, klicke hier</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="timerView" class="hidden">
+    <section id="timerView">
       <div class="timer-container">
         <div id="timerList"></div>
       </div>
@@ -353,56 +209,43 @@
   <audio id="keepAlive" src="silence.mp3" loop style="display:none"></audio>
 
   <script>
-    // --- Konfiguration & Texte ---
+    // --- Feste Produkte & Texte ---
 
-    const DEFAULT_PRODUCTS = [
-      { name: "Veggie Dog", hours: 0, minutes: 20, active: true },
-      { name: "Plant Dog", hours: 0, minutes: 20, active: true },
-      { name: "Geflügel Dog", hours: 0, minutes: 50, active: true },
-      { name: "Plant Nuggets", hours: 0, minutes: 30, active: true },
-      { name: "Köttbullar", hours: 0, minutes: 40, active: true },
-      { name: "Zimtschnecken", hours: 2, minutes: 0, active: true },
-      { name: "Muffin Schoko", hours: 12, minutes: 0, active: true },
-      { name: "Muffin Blaubeer", hours: 12, minutes: 0, active: true }
+    // Zeiten in Minuten (Brötchen: 240 = 4 Stunden)
+    const FIXED_PRODUCTS = [
+      { id: 1, name: "Pommes",       minutes: 10 },
+      { id: 2, name: "Erbsen",       minutes: 20 },
+      { id: 3, name: "Lachsfilet",   minutes: 20 },
+      { id: 4, name: "Plantballs",   minutes: 30 },
+      { id: 5, name: "Plant Nuggets",minutes: 40 },
+      { id: 6, name: "Waffeln",      minutes: 40 },
+      { id: 7, name: "Brötchen",     minutes: 240 },
+      { id: 8, name: "Falafel",      minutes: 20 }
     ];
 
     const STORAGE_KEYS = {
-      products: 'klockaProducts',
       timers: 'klockaTimers',
-      lang: 'klockaLang'
+      lang:   'klockaLang'
     };
 
     const I18N = {
       de: {
         title: 'Klocka',
-        addProduct: 'Produkt hinzufügen',
-        info1: 'Hier kannst du die Haltezeiten einstellen.',
-        info2: 'Neue Produkte kannst du in die freien Felder eintragen, bitte bestätige dann mit dem grünen Button.',
-        ready: 'Wenn du fertig bist, klicke hier',
-        setTime: 'Zeit einstellen ⏱',
         start: 'Start',
-        stop: 'Stop',
-        noProducts: 'Keine aktiven Produkte. Bitte unter "Zeit einstellen" konfigurieren.'
+        stop:  'Stop'
       },
       en: {
         title: 'Klocka',
-        addProduct: 'Add product',
-        info1: 'Here you can set the holding times.',
-        info2: 'You can enter new products into the empty fields, then confirm with the green button.',
-        ready: "When you're finished, click here",
-        setTime: 'Set time ⏱',
         start: 'Start',
-        stop: 'Stop',
-        noProducts: 'No active products. Please configure under "Set time".'
+        stop:  'Stop'
       }
     };
 
     let currentLang = localStorage.getItem(STORAGE_KEYS.lang) || 'de';
-    let products = [];
-    let nextId = 1;
+    let products = FIXED_PRODUCTS.slice(); // Kopie
     let timers = {}; // id -> { totalMs, remainingMs, running, endTimeMs }
 
-    // --- Fullscreen & Audio-Workaround (vor setupEvents definiert!) ---
+    // --- Fullscreen + Audio-Workaround ---
 
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
@@ -432,37 +275,20 @@
       }
     }
 
-    // --- Startpunkt der App ---
+    // --- App-Initialisierung ---
 
     function init() {
       console.log('Klocka init');
-      loadProducts();
       loadTimers();
       applyLanguage();
-      renderConfigView();
       renderTimerView();
       setupEvents();
       startLoop();
     }
 
-    // Script steht am Ende des Body -> DOM ist schon da
-    init();
+    init(); // DOM ist am Ende des Body bereits vorhanden
 
-    // --- Daten laden / speichern ---
-
-    function loadProducts() {
-      const stored = localStorage.getItem(STORAGE_KEYS.products);
-      if (stored) {
-        products = JSON.parse(stored);
-      } else {
-        products = DEFAULT_PRODUCTS.map((p, i) => ({ id: i + 1, ...p }));
-      }
-      nextId = products.reduce((m,p)=>Math.max(m,p.id||0),0)+1;
-    }
-
-    function saveProducts() {
-      localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(products));
-    }
+    // --- Timer-Persistenz ---
 
     function loadTimers() {
       const stored = localStorage.getItem(STORAGE_KEYS.timers);
@@ -502,30 +328,13 @@
     // --- Events & Sprache ---
 
     function setupEvents() {
-      document.getElementById('btnAddProduct').addEventListener('click', () => {
-        products.push({ id: nextId++, name: '', hours: 0, minutes: 0, active: true });
-        saveProducts();
-        renderConfigView();
-        renderTimerView();
-      });
-
-      document.getElementById('btnToTimer').addEventListener('click', () => {
-        showTimerView();
-      });
-
-      document.getElementById('btnToConfig').addEventListener('click', () => {
-        showConfigView();
-      });
-
       document.getElementById('btnLanguage').addEventListener('click', () => {
         currentLang = currentLang === 'de' ? 'en' : 'de';
         localStorage.setItem(STORAGE_KEYS.lang, currentLang);
         applyLanguage();
-        renderConfigView();
         renderTimerView();
       });
 
-      // Fullscreen + Audio
       document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
       document.addEventListener('fullscreenchange', handleFullscreenChange);
     }
@@ -533,112 +342,8 @@
     function applyLanguage() {
       const t = I18N[currentLang];
       document.getElementById('titleText').textContent = t.title;
-      document.getElementById('btnAddProduct').textContent = t.addProduct;
-      document.getElementById('infoText1').textContent = t.info1;
-      document.getElementById('infoText2').textContent = t.info2;
-      document.getElementById('btnToTimer').textContent = t.ready;
-      document.getElementById('btnToConfig').textContent = t.setTime;
       document.getElementById('btnLanguage').textContent =
         currentLang === 'de' ? '🇩🇪 / EN' : 'DE / 🇬🇧';
-    }
-
-    // --- View-Umschaltung ---
-
-    function showTimerView() {
-      document.getElementById('configView').classList.add('hidden');
-      document.getElementById('timerView').classList.remove('hidden');
-      document.getElementById('btnToConfig').classList.remove('hidden');
-      document.body.classList.add('timer-mode');
-    }
-
-    function showConfigView() {
-      document.getElementById('configView').classList.remove('hidden');
-      document.getElementById('timerView').classList.add('hidden');
-      document.getElementById('btnToConfig').classList.add('hidden');
-      document.body.classList.remove('timer-mode');
-    }
-
-    // --- Config-Ansicht ---
-
-    function renderConfigView() {
-      const container = document.getElementById('productList');
-      container.innerHTML = '';
-
-      products.forEach(p => {
-        const row = document.createElement('div');
-        row.className = 'product-row';
-        row.dataset.id = p.id;
-
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.checked = !!p.active;
-        cb.addEventListener('change', () => {
-          p.active = cb.checked;
-          saveProducts();
-          renderTimerView();
-        });
-
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = 'product-name-input';
-        nameInput.value = p.name;
-        nameInput.placeholder = currentLang === 'de' ? 'Produkt' : 'Product';
-        nameInput.addEventListener('change', () => {
-          p.name = nameInput.value;
-          saveProducts();
-          renderTimerView();
-        });
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'delete-btn';
-        delBtn.textContent = '×';
-        delBtn.addEventListener('click', () => {
-          products = products.filter(x => x.id !== p.id);
-          delete timers[p.id];
-          saveProducts();
-          saveTimers();
-          renderConfigView();
-          renderTimerView();
-        });
-
-        const hoursInput = document.createElement('input');
-        hoursInput.type = 'number';
-        hoursInput.className = 'time-input';
-        hoursInput.min = 0;
-        hoursInput.value = p.hours || 0;
-        hoursInput.addEventListener('change', () => {
-          p.hours = clampInt(hoursInput.value, 0, 99);
-          hoursInput.value = p.hours;
-          saveProducts();
-          updateTimerTotal(p.id);
-        });
-
-        const sep = document.createElement('div');
-        sep.className = 'time-separator';
-        sep.textContent = ':';
-
-        const minutesInput = document.createElement('input');
-        minutesInput.type = 'number';
-        minutesInput.className = 'time-input';
-        minutesInput.min = 0;
-        minutesInput.max = 59;
-        minutesInput.value = p.minutes || 0;
-        minutesInput.addEventListener('change', () => {
-          p.minutes = clampInt(minutesInput.value, 0, 59);
-          minutesInput.value = p.minutes;
-          saveProducts();
-          updateTimerTotal(p.id);
-        });
-
-        row.appendChild(cb);
-        row.appendChild(nameInput);
-        row.appendChild(delBtn);
-        row.appendChild(hoursInput);
-        row.appendChild(sep);
-        row.appendChild(minutesInput);
-
-        container.appendChild(row);
-      });
     }
 
     // --- Timer-Ansicht ---
@@ -648,16 +353,9 @@
       container.innerHTML = '';
       const t = I18N[currentLang];
 
-      const active = products.filter(p => p.active && (p.name || '').trim() !== '');
-      if (active.length === 0) {
-        const msg = document.createElement('p');
-        msg.textContent = t.noProducts;
-        container.appendChild(msg);
-        return;
-      }
+      products.forEach(p => {
+        const totalMs = p.minutes * 60 * 1000;
 
-      active.forEach(p => {
-        const totalMs = (Number(p.hours||0)*60 + Number(p.minutes||0)) * 60 * 1000;
         if (!timers[p.id]) {
           timers[p.id] = {
             totalMs: totalMs,
@@ -666,6 +364,7 @@
             endTimeMs: null
           };
         } else {
+          // Produktzeit ist fix, aber falls sich Zeiten im Code ändern:
           timers[p.id].totalMs = totalMs;
           if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
             timers[p.id].remainingMs = totalMs;
@@ -698,11 +397,11 @@
         bar.appendChild(barContent);
 
         const startBtn = document.createElement('button');
-        startBtn.className = 'btn btn-start';
+        startBtn.className = 'btn-start';
         startBtn.textContent = t.start;
 
         const stopBtn = document.createElement('button');
-        stopBtn.className = 'btn btn-stop';
+        stopBtn.className = 'btn-stop';
         stopBtn.textContent = t.stop;
 
         row.appendChild(bar);
@@ -790,27 +489,6 @@
     }
 
     // --- Hilfsfunktionen ---
-
-    function updateTimerTotal(id) {
-      const p = products.find(x => x.id === id);
-      if (!p) return;
-      const totalMs = (Number(p.hours||0)*60 + Number(p.minutes||0)) * 60 * 1000;
-      if (!timers[id]) {
-        timers[id] = { totalMs, remainingMs: totalMs, running: false, endTimeMs: null };
-      } else {
-        timers[id].totalMs = totalMs;
-        if (!timers[id].running) timers[id].remainingMs = totalMs;
-      }
-      renderTimerView();
-    }
-
-    function clampInt(v, min, max) {
-      let n = parseInt(v, 10);
-      if (isNaN(n)) n = min;
-      if (n < min) n = min;
-      if (n > max) n = max;
-      return n;
-    }
 
     function formatDuration(ms) {
       if (ms <= 0) return '00:00:00';
