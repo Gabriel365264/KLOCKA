@@ -205,22 +205,18 @@
     </section>
   </main>
 
-  <!-- Stummes Audio für Kiosk-Wachhalten -->
-  <audio id="keepAlive" src="silence.mp3" loop style="display:none"></audio>
-
   <script>
     // --- Feste Produkte & Texte ---
 
-    // Zeiten in Minuten (Brötchen: 240 = 4 Stunden)
     const FIXED_PRODUCTS = [
-      { id: 1, name: "Pommes",       minutes: 10 },
-      { id: 2, name: "Erbsen",       minutes: 20 },
-      { id: 3, name: "Lachsfilet",   minutes: 20 },
-      { id: 4, name: "Plantballs",   minutes: 30 },
-      { id: 5, name: "Plant Nuggets",minutes: 40 },
-      { id: 6, name: "Waffeln",      minutes: 40 },
-      { id: 7, name: "Brötchen",     minutes: 240 },
-      { id: 8, name: "Falafel",      minutes: 20 }
+      { id: 1, name: "Pommes",        minutes: 10 },
+      { id: 2, name: "Erbsen",        minutes: 20 },
+      { id: 3, name: "Lachsfilet",    minutes: 20 },
+      { id: 4, name: "Plantballs",    minutes: 30 },
+      { id: 5, name: "Plant Nuggets", minutes: 40 },
+      { id: 6, name: "Waffeln",       minutes: 40 },
+      { id: 7, name: "Brötchen",      minutes: 240 },
+      { id: 8, name: "Falafel",       minutes: 20 }
     ];
 
     const STORAGE_KEYS = {
@@ -245,7 +241,7 @@
     let products = FIXED_PRODUCTS.slice(); // Kopie
     let timers = {}; // id -> { totalMs, remainingMs, running, endTimeMs }
 
-    // --- Fullscreen + Audio-Workaround ---
+    // --- Nur noch "sauberes" Fullscreen ohne Workaround ---
 
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
@@ -256,22 +252,6 @@
         if (document.exitFullscreen) {
           document.exitFullscreen();
         }
-      }
-    }
-
-    function handleFullscreenChange() {
-      const audio = document.getElementById('keepAlive');
-      if (!audio) return;
-
-      if (document.fullscreenElement) {
-        // Vollbild: stummes Audio starten
-        audio.play().catch(err => {
-          console.warn('Audio keepAlive konnte nicht gestartet werden:', err);
-        });
-      } else {
-        // Vollbild verlassen: Audio stoppen
-        audio.pause();
-        audio.currentTime = 0;
       }
     }
 
@@ -286,7 +266,7 @@
       startLoop();
     }
 
-    init(); // DOM ist am Ende des Body bereits vorhanden
+    init(); // Script steht am Ende des Body -> DOM ist da
 
     // --- Timer-Persistenz ---
 
@@ -294,212 +274,4 @@
       const stored = localStorage.getItem(STORAGE_KEYS.timers);
       if (!stored) return;
       try {
-        const obj = JSON.parse(stored);
-        const now = Date.now();
-        for (const [id, t] of Object.entries(obj)) {
-          if (!t.totalMs) continue;
-          if (t.running && t.endTimeMs) {
-            const remaining = Math.max(0, t.endTimeMs - now);
-            timers[id] = {
-              totalMs: t.totalMs,
-              remainingMs: remaining,
-              running: remaining > 0,
-              endTimeMs: remaining > 0 ? t.endTimeMs : null
-            };
-          } else {
-            timers[id] = {
-              totalMs: t.totalMs,
-              remainingMs: t.remainingMs || t.totalMs,
-              running: false,
-              endTimeMs: null
-            };
-          }
-        }
-      } catch(e) {
-        console.error('Fehler beim Laden der Timer', e);
-        timers = {};
-      }
-    }
-
-    function saveTimers() {
-      localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
-    }
-
-    // --- Events & Sprache ---
-
-    function setupEvents() {
-      document.getElementById('btnLanguage').addEventListener('click', () => {
-        currentLang = currentLang === 'de' ? 'en' : 'de';
-        localStorage.setItem(STORAGE_KEYS.lang, currentLang);
-        applyLanguage();
-        renderTimerView();
-      });
-
-      document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
-      document.addEventListener('fullscreenchange', handleFullscreenChange);
-    }
-
-    function applyLanguage() {
-      const t = I18N[currentLang];
-      document.getElementById('titleText').textContent = t.title;
-      document.getElementById('btnLanguage').textContent =
-        currentLang === 'de' ? '🇩🇪 / EN' : 'DE / 🇬🇧';
-    }
-
-    // --- Timer-Ansicht ---
-
-    function renderTimerView() {
-      const container = document.getElementById('timerList');
-      container.innerHTML = '';
-      const t = I18N[currentLang];
-
-      products.forEach(p => {
-        const totalMs = p.minutes * 60 * 1000;
-
-        if (!timers[p.id]) {
-          timers[p.id] = {
-            totalMs: totalMs,
-            remainingMs: totalMs,
-            running: false,
-            endTimeMs: null
-          };
-        } else {
-          // Produktzeit ist fix, aber falls sich Zeiten im Code ändern:
-          timers[p.id].totalMs = totalMs;
-          if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
-            timers[p.id].remainingMs = totalMs;
-          }
-        }
-
-        const row = document.createElement('div');
-        row.className = 'timer-row';
-        row.dataset.id = p.id;
-
-        const bar = document.createElement('div');
-        bar.className = 'timer-bar';
-
-        const barFill = document.createElement('div');
-        barFill.className = 'timer-bar-fill';
-
-        const barContent = document.createElement('div');
-        barContent.className = 'timer-bar-content';
-
-        const nameLabel = document.createElement('span');
-        nameLabel.className = 'timer-name';
-        nameLabel.textContent = p.name;
-
-        const timeDiv = document.createElement('span');
-        timeDiv.className = 'timer-time';
-
-        barContent.appendChild(nameLabel);
-        barContent.appendChild(timeDiv);
-        bar.appendChild(barFill);
-        bar.appendChild(barContent);
-
-        const startBtn = document.createElement('button');
-        startBtn.className = 'btn-start';
-        startBtn.textContent = t.start;
-
-        const stopBtn = document.createElement('button');
-        stopBtn.className = 'btn-stop';
-        stopBtn.textContent = t.stop;
-
-        row.appendChild(bar);
-        row.appendChild(startBtn);
-        row.appendChild(stopBtn);
-
-        row._nameLabel = nameLabel;
-        row._progressBar = barFill;
-        row._timeDiv = timeDiv;
-
-        startBtn.addEventListener('click', () => startTimer(p.id));
-        stopBtn.addEventListener('click', () => stopTimer(p.id));
-
-        container.appendChild(row);
-        updateRowUI(p.id);
-      });
-
-      saveTimers();
-    }
-
-    // --- Timer-Logik ---
-
-    function startTimer(id) {
-      const timer = timers[id];
-      if (!timer) return;
-      timer.remainingMs = timer.totalMs;
-      timer.running = true;
-      timer.endTimeMs = Date.now() + timer.remainingMs;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function stopTimer(id) {
-      const timer = timers[id];
-      if (!timer) return;
-      timer.running = false;
-      timer.remainingMs = timer.totalMs;
-      timer.endTimeMs = null;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function updateRowUI(id) {
-      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
-      const timer = timers[id];
-      if (!row || !timer) return;
-
-      const timeDiv = row._timeDiv;
-      const progressBar = row._progressBar;
-      timeDiv.textContent = formatDuration(timer.remainingMs);
-
-      const elapsed = Math.max(0, timer.totalMs - timer.remainingMs);
-      let ratio = 0;
-      if (timer.totalMs > 0) {
-        ratio = elapsed / timer.totalMs;
-      }
-      let percent = Math.max(0, Math.min(100, ratio * 100));
-      const expired = timer.remainingMs <= 0;
-
-      if (expired) {
-        percent = 100;
-        progressBar.classList.add('expired');
-      } else {
-        progressBar.classList.remove('expired');
-      }
-      progressBar.style.width = percent + '%';
-    }
-
-    function startLoop() {
-      setInterval(() => {
-        const now = Date.now();
-        let changed = false;
-        for (const [id, timer] of Object.entries(timers)) {
-          if (!timer.running || !timer.endTimeMs) continue;
-          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
-          if (timer.remainingMs <= 0) {
-            timer.running = false;
-            timer.endTimeMs = null;
-          }
-          updateRowUI(id);
-          changed = true;
-        }
-        if (changed) saveTimers();
-      }, 500);
-    }
-
-    // --- Hilfsfunktionen ---
-
-    function formatDuration(ms) {
-      if (ms <= 0) return '00:00:00';
-      const totalSeconds = Math.floor(ms / 1000);
-      const h = Math.floor(totalSeconds / 3600);
-      const m = Math.floor((totalSeconds % 3600) / 60);
-      const s = totalSeconds % 60;
-      return String(h).padStart(2,'0') + ':' +
-             String(m).padStart(2,'0') + ':' +
-             String(s).padStart(2,'0');
-    }
-  </script>
-</body>
-</html>
+        const obj =
