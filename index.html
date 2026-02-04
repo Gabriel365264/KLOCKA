@@ -339,4 +339,99 @@
         row.appendChild(startBtn);
         row.appendChild(stopBtn);
 
-        row._nameLabel = n
+        // Referenzen für spätere Updates merken
+        row._nameLabel = nameLabel;
+        row._progressBar = barFill;
+        row._timeDiv = timeDiv;
+
+        startBtn.addEventListener('click', () => startTimer(p.id));
+        stopBtn.addEventListener('click', () => stopTimer(p.id));
+
+        container.appendChild(row);
+        updateRowUI(p.id);
+      });
+
+      saveTimers();
+    }
+
+    // --- Timer-Logik ---
+
+    function startTimer(id) {
+      const timer = timers[id];
+      if (!timer) return;
+      timer.remainingMs = timer.totalMs;
+      timer.running = true;
+      timer.endTimeMs = Date.now() + timer.remainingMs;
+      updateRowUI(id);
+      saveTimers();
+    }
+
+    function stopTimer(id) {
+      const timer = timers[id];
+      if (!timer) return;
+      timer.running = false;
+      timer.remainingMs = timer.totalMs;
+      timer.endTimeMs = null;
+      updateRowUI(id);
+      saveTimers();
+    }
+
+    function updateRowUI(id) {
+      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
+      const timer = timers[id];
+      if (!row || !timer) return;
+
+      const timeDiv = row._timeDiv;
+      const progressBar = row._progressBar;
+      timeDiv.textContent = formatDuration(timer.remainingMs);
+
+      const elapsed = Math.max(0, timer.totalMs - timer.remainingMs);
+      let ratio = 0;
+      if (timer.totalMs > 0) {
+        ratio = elapsed / timer.totalMs;
+      }
+      let percent = Math.max(0, Math.min(100, ratio * 100));
+      const expired = timer.remainingMs <= 0;
+
+      if (expired) {
+        percent = 100;
+        progressBar.classList.add('expired');
+      } else {
+        progressBar.classList.remove('expired');
+      }
+      progressBar.style.width = percent + '%';
+    }
+
+    function startLoop() {
+      setInterval(() => {
+        const now = Date.now();
+        let changed = false;
+        for (const [id, timer] of Object.entries(timers)) {
+          if (!timer.running || !timer.endTimeMs) continue;
+          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
+          if (timer.remainingMs <= 0) {
+            timer.running = false;
+            timer.endTimeMs = null;
+          }
+          updateRowUI(id);
+          changed = true;
+        }
+        if (changed) saveTimers();
+      }, 500);
+    }
+
+    // --- Hilfsfunktionen ---
+
+    function formatDuration(ms) {
+      if (ms <= 0) return '00:00:00';
+      const totalSeconds = Math.floor(ms / 1000);
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return String(h).padStart(2,'0') + ':' +
+             String(m).padStart(2,'0') + ':' +
+             String(s).padStart(2,'0');
+    }
+  </script>
+</body>
+</html>
