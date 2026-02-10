@@ -15,21 +15,23 @@
     }
 
     :root {
-      --ikea-blue: #0051BA;
-      --ikea-blue-dark: #00337a;
-      --header-grey: #555555;
-      --bg-light: #ffffff;
-      --panel-bg: #ffffff;
+      /* IKEA App Farben */
+      --ikea-blue: #0058A3;        /* IKEA Blau */
+      --ikea-yellow: #FFDA1A;      /* IKEA Gelb */
+      --ikea-grey: #767676;        /* IKEA Grau */
+      --ikea-grey-light: #E0E0E0;
+
+      --bg-light: #FFFFFF;
+      --panel-bg: #FFFFFF;
       --accent-green: #00c853;
       --accent-red: #ff1744;
-      --accent-pink: #ff8aa7;
-      --accent-add: #ff80ab;
-      --config-pill: #c5b7ff;
+
       --text-main: #111111;
       --text-muted: #555555;
     }
 
     body {
+      background: --bg-light;
       background: var(--bg-light);
       color: var(--text-main);
       line-height: 1.5;
@@ -41,7 +43,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 24px;
-      background: var(--ikea-blue-dark);
+      background: var(--ikea-blue);
       color: #fff;
     }
 
@@ -58,9 +60,9 @@
 
     .header-button {
       border-radius: 999px;
-      border: none;
+      border: 1px solid rgba(255,255,255,0.6);
       padding: 8px 16px;
-      background: #ffffff33;
+      background: rgba(255,255,255,0.15);
       color: #fff;
       cursor: pointer;
       font-weight: 600;
@@ -74,6 +76,7 @@
     /* MAIN LAYOUT */
     .app-main {
       padding: 24px;
+      background: var(--bg-light);
     }
 
     .timer-container {
@@ -99,9 +102,9 @@
       position: relative;
       width: 100%;
       height: 52px; /* gleiche Höhe wie Buttons */
-      border-radius: 0;
+      border-radius: 8px;
       overflow: hidden;
-      background: transparent;
+      background: var(--ikea-grey-light);
     }
 
     .timer-bar-fill {
@@ -110,13 +113,13 @@
       top: 0;
       bottom: 0;
       width: 0; /* per JS */
-      background: var(--accent-pink);
+      background: var(--ikea-yellow); /* laufender Timer in Gelb */
       transition: width 0.3s linear;
       z-index: 0;
     }
 
     .timer-bar-fill.expired {
-      background: var(--accent-red);
+      background: var(--accent-red); /* abgelaufen: rot blinkend */
       animation: blink 1s linear infinite;
     }
 
@@ -133,11 +136,13 @@
     .timer-name {
       font-weight: 600;
       font-size: 24px; /* ~8 mm */
+      color: var(--text-main);
     }
 
     .timer-time {
       font-size: 24px; /* ~8 mm */
       font-weight: 600;
+      color: var(--ikea-grey);
     }
 
     @keyframes blink {
@@ -146,13 +151,13 @@
     }
 
     .btn-start {
-      background: #e0e0e0;              /* deutlich grauer Start-Button */
-      color: var(--accent-green);
+      background: var(--ikea-yellow);      /* Start in IKEA-Gelb */
+      color: var(--ikea-blue);            /* Text in Blau */
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .btn-stop {
-      background: var(--accent-red);
+      background: var(--accent-red);      /* Stop bleibt rot als Warnung */
       color: #fff;
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
