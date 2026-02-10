@@ -14,6 +14,15 @@
       font-family: "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
+    /* Dynamische Basis-Schriftgröße:
+       - mindestens 14px
+       - skaliert mit Bildschirmbreite
+       - maximal 22px
+    */
+    html {
+      font-size: clamp(14px, 1.2vw, 22px);
+    }
+
     :root {
       --ikea-blue: #0051BA;
       --ikea-blue-dark: #00337a;
@@ -40,7 +49,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 24px;
+      padding: 0.8rem 1.5rem;
       background: var(--ikea-blue-dark);
       color: #fff;
     }
@@ -52,53 +61,53 @@
 
     .header-right {
       display: flex;
-      gap: 10px;
+      gap: 0.75rem;
       align-items: center;
     }
 
     .header-button {
       border-radius: 999px;
       border: none;
-      padding: 8px 16px;
+      padding: 0.5rem 1rem;
       background: #ffffff33;
       color: #fff;
       cursor: pointer;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
 
     #btnFullscreen {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
 
     /* MAIN LAYOUT */
     .app-main {
-      padding: 24px;
+      padding: 1.5rem;
     }
 
     .timer-container {
       background: var(--panel-bg);
       border-radius: 0;
-      padding: 8px 0 24px 0;
+      padding: 0.5rem 0 1.5rem 0;
     }
 
     .timer-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 120px 120px; /* Balken + Start + Stop */
-      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) 8rem 8rem; /* Balken + Start + Stop */
+      gap: 0.75rem;
       align-items: center;
-      padding: 4px 16px;
-      font-size: 0.95rem;
+      padding: 0.4rem 1rem;
+      font-size: 1rem;
     }
 
     .timer-row + .timer-row {
-      margin-top: 6px;
+      margin-top: 0.4rem;
     }
 
     .timer-bar {
       position: relative;
       width: 100%;
-      height: 40px;
+      height: 3rem; /* höhere Balken für bessere Sichtbarkeit */
       border-radius: 0;
       overflow: hidden;
       background: transparent;
@@ -126,12 +135,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 12px;
+      padding: 0.4rem 0.75rem;
       height: 100%;
     }
 
     .timer-name {
       font-weight: 600;
+      font-size: 1.1rem;
     }
 
     .timer-time {
@@ -158,18 +168,26 @@
 
     .btn-start,
     .btn-stop {
-      border-radius: 12px;
+      border-radius: 0.75rem;
       border: none;
-      padding: 10px 18px;
+      padding: 0.6rem 0.9rem;
       cursor: pointer;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 1rem;
+      min-width: 6rem;
+    }
+
+    @media (max-width: 900px) {
+      .app-main { padding: 1rem; }
+      .timer-row {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto auto;
+      }
     }
 
     @media (max-width: 600px) {
-      .app-main { padding: 16px; }
-      .app-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-      .timer-row { padding-inline: 8px; }
+      .app-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .timer-row { padding-inline: 0.5rem; }
     }
   </style>
 </head>
@@ -190,248 +208,4 @@
   </main>
 
   <script>
-    // --- Feste Produkte (Deutsch) ---
-
-    const FIXED_PRODUCTS = [
-      { id: 1, name: "Pommes",        minutes: 10 },
-      { id: 2, name: "Erbsen",        minutes: 20 },
-      { id: 3, name: "Lachsfilet",    minutes: 20 },
-      { id: 4, name: "Plantballs",    minutes: 30 },
-      { id: 5, name: "Plant Nuggets", minutes: 40 },
-      { id: 6, name: "Waffeln",       minutes: 40 },
-      { id: 7, name: "Brötchen",      minutes: 240 },
-      { id: 8, name: "Falafel",       minutes: 20 }
-    ];
-
-    const STORAGE_KEYS = {
-      timers: 'klockaTimers'
-    };
-
-    let products = FIXED_PRODUCTS.slice(); // Kopie
-    let timers = {}; // id -> { totalMs, remainingMs, running, endTimeMs }
-
-    // --- Fullscreen (ohne Workaround) ---
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen();
-        }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-      }
-    }
-
-    // --- App-Initialisierung ---
-
-    function init() {
-      console.log('Klocka init');
-      loadTimers();
-      renderTimerView();
-      setupEvents();
-      startLoop();
-    }
-
-    init(); // Script steht am Ende des Body -> DOM ist da
-
-    // --- Timer-Persistenz ---
-
-    function loadTimers() {
-      const stored = localStorage.getItem(STORAGE_KEYS.timers);
-      if (!stored) return;
-      try {
-        const obj = JSON.parse(stored);
-        const now = Date.now();
-        for (const [id, t] of Object.entries(obj)) {
-          if (!t.totalMs) continue;
-          if (t.running && t.endTimeMs) {
-            const remaining = Math.max(0, t.endTimeMs - now);
-            timers[id] = {
-              totalMs: t.totalMs,
-              remainingMs: remaining,
-              running: remaining > 0,
-              endTimeMs: remaining > 0 ? t.endTimeMs : null
-            };
-          } else {
-            timers[id] = {
-              totalMs: t.totalMs,
-              remainingMs: t.remainingMs || t.totalMs,
-              running: false,
-              endTimeMs: null
-            };
-          }
-        }
-      } catch(e) {
-        console.error('Fehler beim Laden der Timer', e);
-        timers = {};
-      }
-    }
-
-    function saveTimers() {
-      localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
-    }
-
-    // --- Events ---
-
-    function setupEvents() {
-      document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
-    }
-
-    // --- Timer-Ansicht ---
-
-    function renderTimerView() {
-      const container = document.getElementById('timerList');
-      container.innerHTML = '';
-
-      products.forEach(p => {
-        const totalMs = p.minutes * 60 * 1000;
-
-        if (!timers[p.id]) {
-          timers[p.id] = {
-            totalMs: totalMs,
-            remainingMs: totalMs,
-            running: false,
-            endTimeMs: null
-          };
-        } else {
-          timers[p.id].totalMs = totalMs;
-          if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
-            timers[p.id].remainingMs = totalMs;
-          }
-        }
-
-        const row = document.createElement('div');
-        row.className = 'timer-row';
-        row.dataset.id = p.id;
-
-        const bar = document.createElement('div');
-        bar.className = 'timer-bar';
-
-        const barFill = document.createElement('div');
-        barFill.className = 'timer-bar-fill';
-
-        const barContent = document.createElement('div');
-        barContent.className = 'timer-bar-content';
-
-        const nameLabel = document.createElement('span');
-        nameLabel.className = 'timer-name';
-        nameLabel.textContent = p.name;
-
-        const timeDiv = document.createElement('span');
-        timeDiv.className = 'timer-time';
-
-        barContent.appendChild(nameLabel);
-        barContent.appendChild(timeDiv);
-        bar.appendChild(barFill);
-        bar.appendChild(barContent);
-
-        const startBtn = document.createElement('button');
-        startBtn.className = 'btn-start';
-        startBtn.textContent = 'Start';
-
-        const stopBtn = document.createElement('button');
-        stopBtn.className = 'btn-stop';
-        stopBtn.textContent = 'Stop';
-
-        row.appendChild(bar);
-        row.appendChild(startBtn);
-        row.appendChild(stopBtn);
-
-        // Referenzen für spätere Updates merken
-        row._nameLabel = nameLabel;
-        row._progressBar = barFill;
-        row._timeDiv = timeDiv;
-
-        startBtn.addEventListener('click', () => startTimer(p.id));
-        stopBtn.addEventListener('click', () => stopTimer(p.id));
-
-        container.appendChild(row);
-        updateRowUI(p.id);
-      });
-
-      saveTimers();
-    }
-
-    // --- Timer-Logik ---
-
-    function startTimer(id) {
-      const timer = timers[id];
-      if (!timer) return;
-      timer.remainingMs = timer.totalMs;
-      timer.running = true;
-      timer.endTimeMs = Date.now() + timer.remainingMs;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function stopTimer(id) {
-      const timer = timers[id];
-      if (!timer) return;
-      timer.running = false;
-      timer.remainingMs = timer.totalMs;
-      timer.endTimeMs = null;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function updateRowUI(id) {
-      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
-      const timer = timers[id];
-      if (!row || !timer) return;
-
-      const timeDiv = row._timeDiv;
-      const progressBar = row._progressBar;
-      timeDiv.textContent = formatDuration(timer.remainingMs);
-
-      const elapsed = Math.max(0, timer.totalMs - timer.remainingMs);
-      let ratio = 0;
-      if (timer.totalMs > 0) {
-        ratio = elapsed / timer.totalMs;
-      }
-      let percent = Math.max(0, Math.min(100, ratio * 100));
-      const expired = timer.remainingMs <= 0;
-
-      if (expired) {
-        percent = 100;
-        progressBar.classList.add('expired');
-      } else {
-        progressBar.classList.remove('expired');
-      }
-      progressBar.style.width = percent + '%';
-    }
-
-    function startLoop() {
-      setInterval(() => {
-        const now = Date.now();
-        let changed = false;
-        for (const [id, timer] of Object.entries(timers)) {
-          if (!timer.running || !timer.endTimeMs) continue;
-          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
-          if (timer.remainingMs <= 0) {
-            timer.running = false;
-            timer.endTimeMs = null;
-          }
-          updateRowUI(id);
-          changed = true;
-        }
-        if (changed) saveTimers();
-      }, 500);
-    }
-
-    // --- Hilfsfunktionen ---
-
-    function formatDuration(ms) {
-      if (ms <= 0) return '00:00:00';
-      const totalSeconds = Math.floor(ms / 1000);
-      const h = Math.floor(totalSeconds / 3600);
-      const m = Math.floor((totalSeconds % 3600) / 60);
-      const s = totalSeconds % 60;
-      return String(h).padStart(2,'0') + ':' +
-             String(m).padStart(2,'0') + ':' +
-             String(s).padStart(2,'0');
-    }
-  </script>
-</body>
-</html>
+    // --- Feste Produkte
