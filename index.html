@@ -15,13 +15,16 @@
     }
 
     :root {
-      --ikea-blue: #0058A3;
-      --ikea-blue-dark: #003D73;
+      --ikea-blue: #0051BA;
+      --ikea-blue-dark: #00337a;
+      --header-grey: #555555;
       --bg-light: #ffffff;
       --panel-bg: #ffffff;
       --accent-green: #00c853;
       --accent-red: #ff1744;
       --accent-pink: #ff8aa7;
+      --accent-add: #ff80ab;
+      --config-pill: #c5b7ff;
       --text-main: #111111;
       --text-muted: #555555;
     }
@@ -38,7 +41,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 14px 26px;
-      background: var(--ikea-blue);
+      background: var(--ikea-blue-dark);
       color: #fff;
     }
 
@@ -55,9 +58,9 @@
 
     .header-button {
       border-radius: 999px;
-      border: 2px solid rgba(255,255,255,0.4);
+      border: none;
       padding: 9px 17px;
-      background: rgba(255,255,255,0.1);
+      background: #ffffff33;
       color: #fff;
       cursor: pointer;
       font-weight: 600;
@@ -65,10 +68,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    .header-button:hover {
-      background: rgba(255,255,255,0.2);
     }
 
     #btnFullscreen {
@@ -289,18 +288,12 @@
       const fsBtn = document.getElementById('btnFullscreen');
       if (fsBtn) {
         fsBtn.addEventListener('click', toggleFullscreen);
-      } else {
-        console.warn('btnFullscreen nicht gefunden');
       }
     }
 
     // --- Timer-Ansicht ---
     function renderTimerView() {
       const container = document.getElementById('timerList');
-      if (!container) {
-        console.error('timerList nicht gefunden');
-        return;
-      }
       container.innerHTML = '';
 
       products.forEach(p => {
@@ -447,4 +440,6 @@
              String(m).padStart(2, '0') + ':' +
              String(s).padStart(2, '0');
     }
- 
+  </script>
+</body>
+</html>
