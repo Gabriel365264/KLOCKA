@@ -15,24 +15,56 @@
     }
 
     :root {
-      --ikea-blue: #0051BA;
-      --ikea-blue-dark: #00337a;
-      --header-grey: #555555;
-      --bg-light: #ffffff;
-      --panel-bg: #ffffff;
-      --accent-green: #00c853;
-      --accent-red: #ff1744;
-      --accent-pink: #ff8aa7;
-      --accent-add: #ff80ab;
-      --config-pill: #c5b7ff;
-      --text-main: #111111;
-      --text-muted: #555555;
+      /* IKEA Skapa Design Tokens */
+      --color-blue-primary: #0058A3;
+      --color-blue-dark: #003D73;
+      --color-yellow-primary: #FFDA1A;
+      --color-grey-50: #F5F5F5;
+      --color-grey-100: #E5E5E5;
+      --color-grey-200: #DFDFDF;
+      --color-grey-700: #484848;
+      --color-grey-900: #111111;
+      --color-white: #FFFFFF;
+      --color-black: #000000;
+      
+      /* Semantic colors */
+      --color-success: #00AB00;
+      --color-error: #E00751;
+      
+      /* Spacing (8px grid) */
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --spacing-xxl: 40px;
+      
+      /* Border radius */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
+      
+      /* Typography */
+      --font-size-sm: 14px;
+      --font-size-md: 16px;
+      --font-size-lg: 20px;
+      --font-size-xl: 24px;
+      --font-size-xxl: 32px;
+      
+      --line-height-tight: 1.2;
+      --line-height-normal: 1.5;
+      --line-height-relaxed: 1.75;
     }
 
     body {
-      background: var(--bg-light);
-      color: var(--text-main);
-      line-height: 1.5;
+      background: var(--color-white);
+      color: var(--color-grey-900);
+      line-height: var(--line-height-normal);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* HEADER */
@@ -40,68 +72,83 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 26px;          /* etwas kleiner als vorher */
-      background: var(--ikea-blue-dark);
-      color: #fff;
+      padding: var(--spacing-md) var(--spacing-lg);
+      background: var(--color-blue-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-sm);
     }
 
     .app-title {
-      font-size: 2.1rem;           /* vorher 2.2rem */
+      font-size: var(--font-size-xxl);
       font-weight: 700;
+      line-height: var(--line-height-tight);
     }
 
     .header-right {
       display: flex;
-      gap: 10px;
+      gap: var(--spacing-sm);
       align-items: center;
     }
 
     .header-button {
-      border-radius: 999px;
-      border: none;
-      padding: 9px 17px;           /* leicht reduziert */
-      background: #ffffff33;
-      color: #fff;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: var(--spacing-sm);
+      background: transparent;
+      color: var(--color-white);
       cursor: pointer;
       font-weight: 600;
-      font-size: 1.05rem;          /* vorher 1.1rem */
+      font-size: var(--font-size-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
 
-    #btnFullscreen {
-      font-size: 1.35rem;          /* vorher 1.4rem */
+    .header-button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .header-button:active {
+      background: rgba(255, 255, 255, 0.2);
     }
 
     /* MAIN LAYOUT */
     .app-main {
-      padding: 26px;               /* vorher 28px */
+      padding: var(--spacing-lg);
+      max-width: 1400px;
+      margin: 0 auto;
     }
 
     .timer-container {
-      background: var(--panel-bg);
-      border-radius: 0;
-      padding: 9px 0 26px 0;       /* leicht reduziert */
+      background: var(--color-white);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm) 0 var(--spacing-lg) 0;
     }
 
     .timer-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 145px 145px; /* etwas kleiner */
-      gap: 13px;
+      grid-template-columns: minmax(0, 1fr) 140px 140px;
+      gap: var(--spacing-md);
       align-items: center;
-      padding: 7px 17px;
-      font-size: 1rem;
+      padding: var(--spacing-sm) var(--spacing-md);
     }
 
     .timer-row + .timer-row {
-      margin-top: 7px;
+      margin-top: var(--spacing-sm);
     }
 
     .timer-bar {
       position: relative;
       width: 100%;
-      height: 56px;               /* vorher 60px */
-      border-radius: 0;
+      height: 56px;
+      border-radius: var(--radius-sm);
       overflow: hidden;
-      background: transparent;
+      background: var(--color-grey-100);
+      border: 1px solid var(--color-grey-200);
     }
 
     .timer-bar-fill {
@@ -109,15 +156,15 @@
       left: 0;
       top: 0;
       bottom: 0;
-      width: 0; /* per JS */
-      background: var(--accent-pink);
-      transition: width 0.3s linear;
+      width: 0;
+      background: var(--color-yellow-primary);
+      transition: width 0.3s ease-out;
       z-index: 0;
     }
 
     .timer-bar-fill.expired {
-      background: var(--accent-red);
-      animation: blink 1s linear infinite;
+      background: var(--color-error);
+      animation: blink 1s ease-in-out infinite;
     }
 
     .timer-bar-content {
@@ -126,70 +173,135 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 13px;
+      padding: 0 var(--spacing-md);
       height: 100%;
     }
 
     .timer-name {
-      font-weight: 600;
-      font-size: 24px;            /* vorher 26px */
+      font-weight: 700;
+      font-size: var(--font-size-xl);
+      color: var(--color-grey-900);
+      line-height: var(--line-height-tight);
     }
 
     .timer-time {
-      font-size: 24px;            /* vorher 26px */
+      font-size: var(--font-size-xl);
       font-weight: 600;
+      color: var(--color-grey-700);
+      font-variant-numeric: tabular-nums;
+      line-height: var(--line-height-tight);
     }
 
     @keyframes blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0.3; }
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.4; }
     }
 
+    /* BUTTONS - Skapa Style */
     .btn-start {
-      background: #e0e0e0;
-      color: var(--accent-green);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      background: var(--color-grey-50);
+      color: var(--color-success);
+      border: 2px solid var(--color-grey-200);
+    }
+
+    .btn-start:hover {
+      background: var(--color-grey-100);
+      border-color: var(--color-success);
+    }
+
+    .btn-start:active {
+      background: var(--color-grey-200);
     }
 
     .btn-stop {
-      background: var(--accent-red);
-      color: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      background: var(--color-error);
+      color: var(--color-white);
+      border: 2px solid var(--color-error);
+    }
+
+    .btn-stop:hover {
+      background: #C00648;
+      border-color: #C00648;
+    }
+
+    .btn-stop:active {
+      background: #A00540;
     }
 
     .btn-start,
     .btn-stop {
-      border-radius: 12px;
-      border: none;
-      height: 56px;               /* vorher 60px */
-      padding: 0 21px;
+      border-radius: var(--radius-sm);
+      height: 56px;
+      min-width: 140px;
+      padding: 0 var(--spacing-lg);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-weight: 600;
-      font-size: 22px;            /* vorher 24px */
+      font-weight: 700;
+      font-size: var(--font-size-lg);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-start:focus-visible,
+    .btn-stop:focus-visible {
+      outline: 3px solid var(--color-blue-primary);
+      outline-offset: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .app-main { 
+        padding: var(--spacing-md); 
+      }
+      
+      .app-header { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: var(--spacing-sm); 
+      }
+      
+      .timer-row { 
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+      }
+      
+      .btn-start,
+      .btn-stop {
+        width: 100%;
+      }
     }
 
     @media (max-width: 600px) {
-      .app-main { padding: 16px; }
-      .app-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-      .timer-row { padding-inline: 8px; }
+      .timer-row { 
+        padding-inline: var(--spacing-sm); 
+      }
+      
+      .timer-name {
+        font-size: var(--font-size-lg);
+      }
+      
+      .timer-time {
+        font-size: var(--font-size-lg);
+      }
     }
   </style>
 </head>
 <body>
   <header class="app-header">
-    <div class="app-title" id="titleText">Klocka</div>
+    <h1 class="app-title">Klocka</h1>
     <div class="header-right">
-      <button class="header-button" id="btnFullscreen">⛶</button>
+      <button class="header-button" id="btnFullscreen" aria-label="Vollbild umschalten">⛶</button>
     </div>
   </header>
 
   <main class="app-main">
-    <section id="timerView">
+    <section id="timerView" aria-label="Timer-Übersicht">
       <div class="timer-container">
-        <div id="timerList"></div>
+        <div id="timerList" role="list"></div>
       </div>
     </section>
   </main>
@@ -214,10 +326,10 @@
       timers: 'klockaTimers'
     };
 
-    let products = FIXED_PRODUCTS.slice(); // Kopie
-    let timers = {}; // id -> { totalMs, remainingMs, running, endTimeMs }
+    let products = FIXED_PRODUCTS.slice();
+    let timers = {};
 
-    // --- Fullscreen (ohne Workaround) ---
+    // --- Fullscreen ---
 
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
@@ -241,7 +353,7 @@
       startLoop();
     }
 
-    init(); // Script steht am Ende des Body -> DOM ist da
+    init();
 
     // --- Timer-Persistenz ---
 
@@ -292,153 +404,4 @@
       const container = document.getElementById('timerList');
       container.innerHTML = '';
 
-      products.forEach(p => {
-        const totalMs = p.minutes * 60 * 1000;
-
-        if (!timers[p.id]) {
-          timers[p.id] = {
-            totalMs: totalMs,
-            remainingMs: totalMs,
-            running: false,
-            endTimeMs: null
-          };
-        } else {
-          timers[p.id].totalMs = totalMs;
-          if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
-            timers[p.id].remainingMs = totalMs;
-          }
-        }
-
-        const row = document.createElement('div');
-        row.className = 'timer-row';
-        row.dataset.id = p.id;
-
-        const bar = document.createElement('div');
-        bar.className = 'timer-bar';
-
-        const barFill = document.createElement('div');
-        barFill.className = 'timer-bar-fill';
-
-        const barContent = document.createElement('div');
-        barContent.className = 'timer-bar-content';
-
-        const nameLabel = document.createElement('span');
-        nameLabel.className = 'timer-name';
-        nameLabel.textContent = p.name;
-
-        const timeDiv = document.createElement('span');
-        timeDiv.className = 'timer-time';
-
-        barContent.appendChild(nameLabel);
-        barContent.appendChild(timeDiv);
-        bar.appendChild(barFill);
-        bar.appendChild(barContent);
-
-        const startBtn = document.createElement('button');
-        startBtn.className = 'btn-start';
-        startBtn.textContent = 'Start';
-
-        const stopBtn = document.createElement('button');
-        stopBtn.className = 'btn-stop';
-        stopBtn.textContent = 'Stop';
-
-        row.appendChild(bar);
-        row.appendChild(startBtn);
-        row.appendChild(stopBtn);
-
-        // Referenzen für spätere Updates merken
-        row._nameLabel = nameLabel;
-        row._progressBar = barFill;
-        row._timeDiv = timeDiv;
-
-        startBtn.addEventListener('click', () => startTimer(p.id));
-        stopBtn.addEventListener('click', () => stopTimer(p.id));
-
-        container.appendChild(row);
-        updateRowUI(p.id);
-      });
-
-      saveTimers();
-    }
-
-    // --- Timer-Logik ---
-
-    function startTimer(id) {
-      const timer = timers[id];
-      if (!timer) return;
-      timer.remainingMs = timer.totalMs;
-      timer.running = true;
-      timer.endTimeMs = Date.now() + timer.remainingMs;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function stopTimer(id) {
-      const timer = timers[id];
-      if (!timer) return;
-      timer.running = false;
-      timer.remainingMs = timer.totalMs;
-      timer.endTimeMs = null;
-      updateRowUI(id);
-      saveTimers();
-    }
-
-    function updateRowUI(id) {
-      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
-      const timer = timers[id];
-      if (!row || !timer) return;
-
-      const timeDiv = row._timeDiv;
-      const progressBar = row._progressBar;
-      timeDiv.textContent = formatDuration(timer.remainingMs);
-
-      const elapsed = Math.max(0, timer.totalMs - timer.remainingMs);
-      let ratio = 0;
-      if (timer.totalMs > 0) {
-        ratio = elapsed / timer.totalMs;
-      }
-      let percent = Math.max(0, Math.min(100, ratio * 100));
-      const expired = timer.remainingMs <= 0;
-
-      if (expired) {
-        percent = 100;
-        progressBar.classList.add('expired');
-      } else {
-        progressBar.classList.remove('expired');
-      }
-      progressBar.style.width = percent + '%';
-    }
-
-    function startLoop() {
-      setInterval(() => {
-        const now = Date.now();
-        let changed = false;
-        for (const [id, timer] of Object.entries(timers)) {
-          if (!timer.running || !timer.endTimeMs) continue;
-          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
-          if (timer.remainingMs <= 0) {
-            timer.running = false;
-            timer.endTimeMs = null;
-          }
-          updateRowUI(id);
-          changed = true;
-        }
-        if (changed) saveTimers();
-      }, 500);
-    }
-
-    // --- Hilfsfunktionen ---
-
-    function formatDuration(ms) {
-      if (ms <= 0) return '00:00:00';
-      const totalSeconds = Math.floor(ms / 1000);
-      const h = Math.floor(totalSeconds / 3600);
-      const m = Math.floor((totalSeconds % 3600) / 60);
-      const s = totalSeconds % 60;
-      return String(h).padStart(2, '0') + ':' +
-             String(m).padStart(2, '0') + ':' +
-             String(s).padStart(2, '0');
-    }
-  </script>
-</body>
-</html>
+      products.
