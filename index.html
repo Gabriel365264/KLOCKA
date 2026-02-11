@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Klocka – Digitale Eieruhr (Variante B)</title>
+  <title>Klocka – Digitale Eieruhr</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
 
@@ -15,7 +15,7 @@
     }
 
     :root {
-      /* Skapa-orientierte Tokens */
+      /* Skapa-nahe Farben / Tokens */
       --color-blue-primary: #0058A3;
       --color-blue-dark: #003D73;
       --color-yellow-primary: #FFDA1A;
@@ -25,19 +25,25 @@
       --color-grey-700: #484848;
       --color-grey-900: #111111;
       --color-white: #FFFFFF;
+
       --color-success: #00AB00;
       --color-error: #E00751;
 
+      /* Spacing (8px Grid) */
       --spacing-xs: 4px;
       --spacing-sm: 8px;
       --spacing-md: 16px;
       --spacing-lg: 24px;
       --spacing-xl: 32px;
 
+      /* Radius */
       --radius-sm: 4px;
       --radius-md: 8px;
 
-      --font-size-sm: 14px;
+      /* Shadow */
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+      /* Typography */
       --font-size-md: 16px;
       --font-size-lg: 20px;
       --font-size-xl: 24px;
@@ -45,9 +51,6 @@
 
       --line-height-tight: 1.2;
       --line-height-normal: 1.5;
-
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
-      --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
     body {
@@ -58,7 +61,7 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* HEADER */
+    /* HEADER mit IKEA-Logo */
     .app-header {
       display: flex;
       justify-content: space-between;
@@ -67,12 +70,26 @@
       background: var(--color-blue-primary);
       color: var(--color-white);
       box-shadow: var(--shadow-sm);
+      gap: var(--spacing-md);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+
+    .ikea-logo {
+      height: 32px;          /* an Trademark-Vorgaben anpassen */
+      width: auto;
+      display: block;
     }
 
     .app-title {
       font-size: var(--font-size-xxl);
       font-weight: 700;
       line-height: var(--line-height-tight);
+      margin: 0;
     }
 
     .header-right {
@@ -100,12 +117,16 @@
 
     .header-button:hover {
       background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.5);
+      border-color: rgba(255, 255, 255, 0.6);
     }
 
     .header-button:focus-visible {
       outline: 3px solid #ffffff;
       outline-offset: 2px;
+    }
+
+    #btnFullscreen {
+      font-size: 1.3rem;
     }
 
     /* MAIN LAYOUT */
@@ -117,16 +138,16 @@
 
     .timer-container {
       background: var(--color-white);
-      border-radius: var(--radius-md);
       padding: var(--spacing-sm) 0 var(--spacing-lg) 0;
     }
 
     .timer-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 160px 160px;
+      grid-template-columns: minmax(0, 1fr) 145px 145px;
       gap: var(--spacing-md);
       align-items: center;
       padding: var(--spacing-sm) var(--spacing-md);
+      font-size: var(--font-size-md);
     }
 
     .timer-row + .timer-row {
@@ -224,7 +245,7 @@
     .btn-stop {
       border-radius: var(--radius-sm);
       height: 56px;
-      min-width: 160px;
+      min-width: 145px;
       padding: 0 var(--spacing-lg);
       display: flex;
       align-items: center;
@@ -244,22 +265,36 @@
       outline-offset: 2px;
     }
 
+    /* Responsive */
     @media (max-width: 768px) {
-      .app-main { padding: var(--spacing-md); }
-      .app-header { flex-direction: column; align-items: flex-start; gap: var(--spacing-sm); }
-      .timer-row { grid-template-columns: 1fr; }
-      .btn-start, .btn-stop { width: 100%; }
-    }
+      .app-main {
+        padding: var(--spacing-md);
+      }
 
-    @media (max-width: 600px) {
-      .timer-row { padding-inline: var(--spacing-sm); }
-      .timer-name, .timer-time { font-size: var(--font-size-lg); }
+      .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .timer-row {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-start,
+      .btn-stop {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
   <header class="app-header">
-    <h1 class="app-title">Klocka</h1>
+    <div class="header-left">
+      <!-- IKEA-Logo aus Trademark-Dokument einbinden -->
+      <!-- Ersetze ikea-logo.svg durch den Pfad/Dateinamen deines offiziellen Logos -->
+      <img src="ikea-logo.svg" alt="IKEA" class="ikea-logo" />
+      <h1 class="app-title">Klocka</h1>
+    </div>
     <div class="header-right">
       <button class="header-button" id="btnFullscreen" aria-label="Vollbild umschalten">⛶</button>
     </div>
@@ -274,6 +309,7 @@
   </main>
 
   <script>
+    // --- Feste Produkte (Deutsch) ---
     const FIXED_PRODUCTS = [
       { id: 1,  name: "Pommes",        minutes: 10 },
       { id: 2,  name: "Erbsen",        minutes: 20 },
@@ -287,11 +323,14 @@
       { id: 10, name: "Plant Nuggets", minutes: 40 }
     ];
 
-    const STORAGE_KEYS = { timers: 'klockaTimers' };
+    const STORAGE_KEYS = {
+      timers: 'klockaTimers'
+    };
 
     let products = FIXED_PRODUCTS.slice();
     let timers = {};
 
+    // --- Fullscreen ---
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
         if (document.documentElement.requestFullscreen) {
@@ -304,7 +343,9 @@
       }
     }
 
+    // --- App-Initialisierung ---
     function init() {
+      console.log('Klocka init');
       loadTimers();
       renderTimerView();
       setupEvents();
@@ -313,6 +354,7 @@
 
     init();
 
+    // --- Timer-Persistenz ---
     function loadTimers() {
       const stored = localStorage.getItem(STORAGE_KEYS.timers);
       if (!stored) return;
@@ -348,11 +390,15 @@
       localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
     }
 
+    // --- Events ---
     function setupEvents() {
       const fsBtn = document.getElementById('btnFullscreen');
-      if (fsBtn) fsBtn.addEventListener('click', toggleFullscreen);
+      if (fsBtn) {
+        fsBtn.addEventListener('click', toggleFullscreen);
+      }
     }
 
+    // --- Timer-Ansicht ---
     function renderTimerView() {
       const container = document.getElementById('timerList');
       container.innerHTML = '';
@@ -425,6 +471,7 @@
       saveTimers();
     }
 
+    // --- Timer-Logik ---
     function startTimer(id) {
       const timer = timers[id];
       if (!timer) return;
@@ -456,7 +503,9 @@
 
       const elapsed = Math.max(0, timer.totalMs - timer.remainingMs);
       let ratio = 0;
-      if (timer.totalMs > 0) ratio = elapsed / timer.totalMs;
+      if (timer.totalMs > 0) {
+        ratio = elapsed / timer.totalMs;
+      }
       let percent = Math.max(0, Math.min(100, ratio * 100));
       const expired = timer.remainingMs <= 0;
 
@@ -487,19 +536,17 @@
       }, 500);
     }
 
+    // --- Hilfsfunktionen ---
     function formatDuration(ms) {
       if (ms <= 0) return '00:00:00';
       const totalSeconds = Math.floor(ms / 1000);
       const h = Math.floor(totalSeconds / 3600);
       const m = Math.floor((totalSeconds % 3600) / 60);
       const s = totalSeconds % 60;
-      return String(h).padStart(2,'0') + ':' +
-             String(m).padStart(2,'0') + ':' +
-             String(s).padStart(2,'0');
+      return String(h).padStart(2, '0') + ':' +
+             String(m).padStart(2, '0') + ':' +
+             String(s).padStart(2, '0');
     }
   </script>
-</body>
-</html>
-</pre>
 </body>
 </html>
