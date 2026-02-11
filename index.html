@@ -15,56 +15,32 @@
     }
 
     :root {
-      /* IKEA Skapa Design Tokens */
-      --color-blue-primary: #0058A3;
-      --color-blue-dark: #003D73;
-      --color-yellow-primary: #FFDA1A;
-      --color-grey-50: #F5F5F5;
-      --color-grey-100: #E5E5E5;
-      --color-grey-200: #DFDFDF;
-      --color-grey-700: #484848;
-      --color-grey-900: #111111;
-      --color-white: #FFFFFF;
-      --color-black: #000000;
-      
-      /* Semantic colors */
-      --color-success: #00AB00;
-      --color-error: #E00751;
-      
-      /* Spacing (8px grid) */
-      --spacing-xs: 4px;
-      --spacing-sm: 8px;
-      --spacing-md: 16px;
-      --spacing-lg: 24px;
-      --spacing-xl: 32px;
-      --spacing-xxl: 40px;
-      
-      /* Border radius */
-      --radius-sm: 4px;
-      --radius-md: 8px;
-      
-      /* Shadows */
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
-      --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
-      
-      /* Typography */
-      --font-size-sm: 14px;
-      --font-size-md: 16px;
-      --font-size-lg: 20px;
-      --font-size-xl: 24px;
-      --font-size-xxl: 32px;
-      
-      --line-height-tight: 1.2;
-      --line-height-normal: 1.5;
-      --line-height-relaxed: 1.75;
+      --ikea-blue: #0051BA;
+      --ikea-blue-dark: #00337a;
+      --bg-light: #ffffff;
+      --panel-bg: #ffffff;
+      --accent-green: #00c853;
+      --accent-red: #ff1744;
+      --accent-pink: #ff8aa7;
+      --text-main: #111111;
+      --text-muted: #555555;
+
+      /* Spacing */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+
+      /* Sizes */
+      --row-height: 56px;   /* Höhe Balken + Buttons */
+      --font-timer: 24px;   /* Produktname & Zeit */
+      --font-button: 22px;  /* Buttons */
     }
 
     body {
-      background: var(--color-white);
-      color: var(--color-grey-900);
-      line-height: var(--line-height-normal);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      background: var(--bg-light);
+      color: var(--text-main);
+      line-height: 1.5;
     }
 
     /* HEADER */
@@ -72,83 +48,71 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: var(--spacing-md) var(--spacing-lg);
-      background: var(--color-blue-primary);
-      color: var(--color-white);
-      box-shadow: var(--shadow-sm);
+      padding: 14px 26px;
+      background: var(--ikea-blue-dark);
+      color: #fff;
     }
 
     .app-title {
-      font-size: var(--font-size-xxl);
+      font-size: 2.1rem;
       font-weight: 700;
-      line-height: var(--line-height-tight);
     }
 
     .header-right {
       display: flex;
-      gap: var(--spacing-sm);
+      gap: 10px;
       align-items: center;
     }
 
     .header-button {
-      min-width: 44px;
-      min-height: 44px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      padding: var(--spacing-sm);
+      border: 2px solid rgba(255,255,255,0.6);
       background: transparent;
-      color: var(--color-white);
+      color: #fff;
       cursor: pointer;
       font-weight: 600;
-      font-size: var(--font-size-lg);
+      font-size: 1.3rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
 
     .header-button:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    .header-button:active {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255,255,255,0.12);
     }
 
     /* MAIN LAYOUT */
     .app-main {
-      padding: var(--spacing-lg);
-      max-width: 1400px;
-      margin: 0 auto;
+      padding: 26px;
     }
 
     .timer-container {
-      background: var(--color-white);
-      border-radius: var(--radius-md);
-      padding: var(--spacing-sm) 0 var(--spacing-lg) 0;
+      background: var(--panel-bg);
+      padding: 9px 0 26px 0;
     }
 
     .timer-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 140px 140px;
-      gap: var(--spacing-md);
+      grid-template-columns: minmax(0, 1fr) 145px 145px; /* Balken + Start + Stop */
+      gap: 13px;
       align-items: center;
-      padding: var(--spacing-sm) var(--spacing-md);
+      padding: 7px 17px;
+      font-size: 1rem;
     }
 
     .timer-row + .timer-row {
-      margin-top: var(--spacing-sm);
+      margin-top: 7px;
     }
 
     .timer-bar {
       position: relative;
       width: 100%;
-      height: 56px;
-      border-radius: var(--radius-sm);
+      height: var(--row-height);
+      border-radius: 0;
       overflow: hidden;
-      background: var(--color-grey-100);
-      border: 1px solid var(--color-grey-200);
+      background: transparent;
     }
 
     .timer-bar-fill {
@@ -156,15 +120,15 @@
       left: 0;
       top: 0;
       bottom: 0;
-      width: 0;
-      background: var(--color-yellow-primary);
-      transition: width 0.3s ease-out;
+      width: 0; /* per JS */
+      background: var(--accent-pink);
+      transition: width 0.3s linear;
       z-index: 0;
     }
 
     .timer-bar-fill.expired {
-      background: var(--color-error);
-      animation: blink 1s ease-in-out infinite;
+      background: var(--accent-red);
+      animation: blink 1s linear infinite;
     }
 
     .timer-bar-content {
@@ -173,135 +137,70 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 var(--spacing-md);
+      padding: 0 13px;
       height: 100%;
     }
 
     .timer-name {
-      font-weight: 700;
-      font-size: var(--font-size-xl);
-      color: var(--color-grey-900);
-      line-height: var(--line-height-tight);
+      font-weight: 600;
+      font-size: var(--font-timer);
     }
 
     .timer-time {
-      font-size: var(--font-size-xl);
+      font-size: var(--font-timer);
       font-weight: 600;
-      color: var(--color-grey-700);
-      font-variant-numeric: tabular-nums;
-      line-height: var(--line-height-tight);
     }
 
     @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0.4; }
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.3; }
     }
 
-    /* BUTTONS - Skapa Style */
     .btn-start {
-      background: var(--color-grey-50);
-      color: var(--color-success);
-      border: 2px solid var(--color-grey-200);
-    }
-
-    .btn-start:hover {
-      background: var(--color-grey-100);
-      border-color: var(--color-success);
-    }
-
-    .btn-start:active {
-      background: var(--color-grey-200);
+      background: #e0e0e0;
+      color: var(--accent-green);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .btn-stop {
-      background: var(--color-error);
-      color: var(--color-white);
-      border: 2px solid var(--color-error);
-    }
-
-    .btn-stop:hover {
-      background: #C00648;
-      border-color: #C00648;
-    }
-
-    .btn-stop:active {
-      background: #A00540;
+      background: var(--accent-red);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
 
     .btn-start,
     .btn-stop {
-      border-radius: var(--radius-sm);
-      height: 56px;
-      min-width: 140px;
-      padding: 0 var(--spacing-lg);
+      border-radius: 12px;
+      border: none;
+      height: var(--row-height);
+      padding: 0 21px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-weight: 700;
-      font-size: var(--font-size-lg);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.2s ease;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .btn-start:focus-visible,
-    .btn-stop:focus-visible {
-      outline: 3px solid var(--color-blue-primary);
-      outline-offset: 2px;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .app-main { 
-        padding: var(--spacing-md); 
-      }
-      
-      .app-header { 
-        flex-direction: column; 
-        align-items: flex-start; 
-        gap: var(--spacing-sm); 
-      }
-      
-      .timer-row { 
-        grid-template-columns: 1fr;
-        gap: var(--spacing-sm);
-      }
-      
-      .btn-start,
-      .btn-stop {
-        width: 100%;
-      }
+      font-weight: 600;
+      font-size: var(--font-button);
     }
 
     @media (max-width: 600px) {
-      .timer-row { 
-        padding-inline: var(--spacing-sm); 
-      }
-      
-      .timer-name {
-        font-size: var(--font-size-lg);
-      }
-      
-      .timer-time {
-        font-size: var(--font-size-lg);
-      }
+      .app-main { padding: 16px; }
+      .app-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .timer-row { padding-inline: 8px; }
     }
   </style>
 </head>
 <body>
   <header class="app-header">
-    <h1 class="app-title">Klocka</h1>
+    <div class="app-title" id="titleText">Klocka</div>
     <div class="header-right">
       <button class="header-button" id="btnFullscreen" aria-label="Vollbild umschalten">⛶</button>
     </div>
   </header>
 
   <main class="app-main">
-    <section id="timerView" aria-label="Timer-Übersicht">
+    <section id="timerView">
       <div class="timer-container">
-        <div id="timerList" role="list"></div>
+        <div id="timerList"></div>
       </div>
     </section>
   </main>
@@ -326,10 +225,10 @@
       timers: 'klockaTimers'
     };
 
-    let products = FIXED_PRODUCTS.slice();
-    let timers = {};
+    let products = FIXED_PRODUCTS.slice(); // Kopie
+    let timers = {}; // id -> { totalMs, remainingMs, running, endTimeMs }
 
-    // --- Fullscreen ---
+    // --- Fullscreen (ohne Workaround) ---
 
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
@@ -353,7 +252,7 @@
       startLoop();
     }
 
-    init();
+    init(); // Script steht am Ende des Body -> DOM ist da
 
     // --- Timer-Persistenz ---
 
@@ -404,4 +303,51 @@
       const container = document.getElementById('timerList');
       container.innerHTML = '';
 
-      products.
+      products.forEach(p => {
+        const totalMs = p.minutes * 60 * 1000;
+
+        if (!timers[p.id]) {
+          timers[p.id] = {
+            totalMs: totalMs,
+            remainingMs: totalMs,
+            running: false,
+            endTimeMs: null
+          };
+        } else {
+          timers[p.id].totalMs = totalMs;
+          if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
+            timers[p.id].remainingMs = totalMs;
+          }
+        }
+
+        const row = document.createElement('div');
+        row.className = 'timer-row';
+        row.dataset.id = p.id;
+
+        const bar = document.createElement('div');
+        bar.className = 'timer-bar';
+
+        const barFill = document.createElement('div');
+        barFill.className = 'timer-bar-fill';
+
+        const barContent = document.createElement('div');
+        barContent.className = 'timer-bar-content';
+
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'timer-name';
+        nameLabel.textContent = p.name;
+
+        const timeDiv = document.createElement('span');
+        timeDiv.className = 'timer-time';
+
+        barContent.appendChild(nameLabel);
+        barContent.appendChild(timeDiv);
+        bar.appendChild(barFill);
+        bar.appendChild(barContent);
+
+        const startBtn = document.createElement('button');
+        startBtn.className = 'btn-start';
+        startBtn.textContent = 'Start';
+
+        const stopBtn = document.createElement('button');
+        stopBtn.className = 'btn-
