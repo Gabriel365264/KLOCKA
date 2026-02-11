@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Klocka – Digitale Eieruhr (Variante A)</title>
+  <title>Klocka – Digitale Eieruhr (Variante B)</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
 
@@ -15,22 +15,47 @@
     }
 
     :root {
-      /* Skapa-nahe Farben, Layout wie bisher */
-      --ikea-blue: #0058A3;           /* offizielleres IKEA-Blau */
-      --ikea-blue-dark: #003D73;
-      --bg-light: #ffffff;
-      --panel-bg: #ffffff;
-      --accent-green: #00AB00;       /* etwas näher an IKEA-Grün */
-      --accent-red: #E00751;         /* Skapa Error-Red-nah */
-      --accent-pink: #ff8aa7;        /* Balken bleibt rosa */
-      --text-main: #111111;
-      --text-muted: #555555;
+      /* Skapa-orientierte Tokens */
+      --color-blue-primary: #0058A3;
+      --color-blue-dark: #003D73;
+      --color-yellow-primary: #FFDA1A;
+      --color-grey-50: #F5F5F5;
+      --color-grey-100: #E5E5E5;
+      --color-grey-200: #DFDFDF;
+      --color-grey-700: #484848;
+      --color-grey-900: #111111;
+      --color-white: #FFFFFF;
+      --color-success: #00AB00;
+      --color-error: #E00751;
+
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+
+      --font-size-sm: 14px;
+      --font-size-md: 16px;
+      --font-size-lg: 20px;
+      --font-size-xl: 24px;
+      --font-size-xxl: 32px;
+
+      --line-height-tight: 1.2;
+      --line-height-normal: 1.5;
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
     body {
-      background: var(--bg-light);
-      color: var(--text-main);
-      line-height: 1.5;
+      background: var(--color-white);
+      color: var(--color-grey-900);
+      line-height: var(--line-height-normal);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* HEADER */
@@ -38,42 +63,44 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 24px;
-      background: var(--ikea-blue);
-      color: #fff;
+      padding: var(--spacing-md) var(--spacing-lg);
+      background: var(--color-blue-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-sm);
     }
 
     .app-title {
-      font-size: 2rem;
+      font-size: var(--font-size-xxl);
       font-weight: 700;
+      line-height: var(--line-height-tight);
     }
 
     .header-right {
       display: flex;
-      gap: 8px;
+      gap: var(--spacing-sm);
       align-items: center;
     }
 
     .header-button {
-      border-radius: 999px;
-      border: 2px solid rgba(255,255,255,0.4);
-      padding: 8px 14px;
-      background: rgba(255,255,255,0.1);
-      color: #fff;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: var(--spacing-sm);
+      background: transparent;
+      color: var(--color-white);
       cursor: pointer;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: var(--font-size-lg);
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
 
-    #btnFullscreen {
-      font-size: 1.2rem;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      padding: 0;
+    .header-button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
     }
 
     .header-button:focus-visible {
@@ -83,33 +110,37 @@
 
     /* MAIN LAYOUT */
     .app-main {
-      padding: 24px;
+      padding: var(--spacing-lg);
+      max-width: 1400px;
+      margin: 0 auto;
     }
 
     .timer-container {
-      background: var(--panel-bg);
-      padding: 8px 0 24px 0;
+      background: var(--color-white);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm) 0 var(--spacing-lg) 0;
     }
 
     .timer-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 140px 140px;
-      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) 160px 160px;
+      gap: var(--spacing-md);
       align-items: center;
-      padding: 8px 16px;
-      font-size: 1rem;
+      padding: var(--spacing-sm) var(--spacing-md);
     }
 
     .timer-row + .timer-row {
-      margin-top: 8px;
+      margin-top: var(--spacing-sm);
     }
 
     .timer-bar {
       position: relative;
       width: 100%;
       height: 56px;
+      border-radius: var(--radius-sm);
       overflow: hidden;
-      background: transparent;
+      background: var(--color-grey-100);
+      border: 1px solid var(--color-grey-200);
     }
 
     .timer-bar-fill {
@@ -118,14 +149,14 @@
       top: 0;
       bottom: 0;
       width: 0;
-      background: var(--accent-pink); /* bleibt rosa */
-      transition: width 0.3s linear;
+      background: var(--color-yellow-primary);
+      transition: width 0.3s ease-out;
       z-index: 0;
     }
 
     .timer-bar-fill.expired {
-      background: var(--accent-red);
-      animation: blink 1s linear infinite;
+      background: var(--color-error);
+      animation: blink 1s ease-in-out infinite;
     }
 
     .timer-bar-content {
@@ -134,74 +165,108 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 12px;
+      padding: 0 var(--spacing-md);
       height: 100%;
     }
 
     .timer-name {
-      font-weight: 600;
-      font-size: 24px;
+      font-weight: 700;
+      font-size: var(--font-size-xl);
+      color: var(--color-grey-900);
+      line-height: var(--line-height-tight);
     }
 
     .timer-time {
-      font-size: 24px;
+      font-size: var(--font-size-xl);
       font-weight: 600;
+      color: var(--color-grey-700);
+      font-variant-numeric: tabular-nums;
+      line-height: var(--line-height-tight);
     }
 
     @keyframes blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0.3; }
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.4; }
     }
 
+    /* BUTTONS */
     .btn-start {
-      background: #e0e0e0;
-      color: var(--accent-green);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      background: var(--color-grey-50);
+      color: var(--color-success);
+      border: 2px solid var(--color-grey-200);
+    }
+
+    .btn-start:hover {
+      background: var(--color-grey-100);
+      border-color: var(--color-success);
+    }
+
+    .btn-start:active {
+      background: var(--color-grey-200);
     }
 
     .btn-stop {
-      background: var(--accent-red);
-      color: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      background: var(--color-error);
+      color: var(--color-white);
+      border: 2px solid var(--color-error);
+    }
+
+    .btn-stop:hover {
+      background: #C00648;
+      border-color: #C00648;
+    }
+
+    .btn-stop:active {
+      background: #A00540;
     }
 
     .btn-start,
     .btn-stop {
-      border-radius: 12px;
-      border: none;
+      border-radius: var(--radius-sm);
       height: 56px;
-      padding: 0 20px;
+      min-width: 160px;
+      padding: 0 var(--spacing-lg);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-weight: 600;
-      font-size: 22px;
+      font-weight: 700;
+      font-size: var(--font-size-lg);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
     }
 
     .btn-start:focus-visible,
     .btn-stop:focus-visible {
-      outline: 3px solid var(--ikea-blue);
+      outline: 3px solid var(--color-blue-primary);
       outline-offset: 2px;
     }
 
+    @media (max-width: 768px) {
+      .app-main { padding: var(--spacing-md); }
+      .app-header { flex-direction: column; align-items: flex-start; gap: var(--spacing-sm); }
+      .timer-row { grid-template-columns: 1fr; }
+      .btn-start, .btn-stop { width: 100%; }
+    }
+
     @media (max-width: 600px) {
-      .app-main { padding: 16px; }
-      .app-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-      .timer-row { padding-inline: 8px; }
+      .timer-row { padding-inline: var(--spacing-sm); }
+      .timer-name, .timer-time { font-size: var(--font-size-lg); }
     }
   </style>
 </head>
 <body>
   <header class="app-header">
-    <div class="app-title" id="titleText">Klocka</div>
+    <h1 class="app-title">Klocka</h1>
     <div class="header-right">
       <button class="header-button" id="btnFullscreen" aria-label="Vollbild umschalten">⛶</button>
     </div>
   </header>
 
   <main class="app-main">
-    <section id="timerView">
+    <section id="timerView" aria-label="Timer-Übersicht">
       <div class="timer-container">
         <div id="timerList"></div>
       </div>
@@ -436,3 +501,5 @@
 </body>
 </html>
 </pre>
+</body>
+</html>
