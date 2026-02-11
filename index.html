@@ -15,8 +15,8 @@
     }
 
     :root {
-      --ikea-blue: #0051BA;
-      --ikea-blue-dark: #00337a;
+      --ikea-blue: #0058A3;
+      --ikea-blue-dark: #003D73;
       --bg-light: #ffffff;
       --panel-bg: #ffffff;
       --accent-green: #00c853;
@@ -24,17 +24,6 @@
       --accent-pink: #ff8aa7;
       --text-main: #111111;
       --text-muted: #555555;
-
-      /* Spacing */
-      --space-xs: 4px;
-      --space-sm: 8px;
-      --space-md: 16px;
-      --space-lg: 24px;
-
-      /* Sizes */
-      --row-height: 56px;   /* Höhe Balken + Buttons */
-      --font-timer: 24px;   /* Produktname & Zeit */
-      --font-button: 22px;  /* Buttons */
     }
 
     body {
@@ -49,7 +38,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 14px 26px;
-      background: var(--ikea-blue-dark);
+      background: var(--ikea-blue);
       color: #fff;
     }
 
@@ -65,22 +54,29 @@
     }
 
     .header-button {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.6);
-      background: transparent;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.4);
+      padding: 9px 17px;
+      background: rgba(255,255,255,0.1);
       color: #fff;
       cursor: pointer;
       font-weight: 600;
-      font-size: 1.3rem;
+      font-size: 1.05rem;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .header-button:hover {
-      background: rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.2);
+    }
+
+    #btnFullscreen {
+      font-size: 1.35rem;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      padding: 0;
     }
 
     /* MAIN LAYOUT */
@@ -90,12 +86,13 @@
 
     .timer-container {
       background: var(--panel-bg);
+      border-radius: 0;
       padding: 9px 0 26px 0;
     }
 
     .timer-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 145px 145px; /* Balken + Start + Stop */
+      grid-template-columns: minmax(0, 1fr) 145px 145px;
       gap: 13px;
       align-items: center;
       padding: 7px 17px;
@@ -109,7 +106,7 @@
     .timer-bar {
       position: relative;
       width: 100%;
-      height: var(--row-height);
+      height: 56px;
       border-radius: 0;
       overflow: hidden;
       background: transparent;
@@ -120,7 +117,7 @@
       left: 0;
       top: 0;
       bottom: 0;
-      width: 0; /* per JS */
+      width: 0;
       background: var(--accent-pink);
       transition: width 0.3s linear;
       z-index: 0;
@@ -143,11 +140,11 @@
 
     .timer-name {
       font-weight: 600;
-      font-size: var(--font-timer);
+      font-size: 24px;
     }
 
     .timer-time {
-      font-size: var(--font-timer);
+      font-size: 24px;
       font-weight: 600;
     }
 
@@ -172,14 +169,14 @@
     .btn-stop {
       border-radius: 12px;
       border: none;
-      height: var(--row-height);
+      height: 56px;
       padding: 0 21px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       font-weight: 600;
-      font-size: var(--font-button);
+      font-size: 22px;
     }
 
     @media (max-width: 600px) {
@@ -207,7 +204,6 @@
 
   <script>
     // --- Feste Produkte (Deutsch) ---
-
     const FIXED_PRODUCTS = [
       { id: 1,  name: "Pommes",        minutes: 10 },
       { id: 2,  name: "Erbsen",        minutes: 20 },
@@ -225,11 +221,10 @@
       timers: 'klockaTimers'
     };
 
-    let products = FIXED_PRODUCTS.slice(); // Kopie
-    let timers = {}; // id -> { totalMs, remainingMs, running, endTimeMs }
+    let products = FIXED_PRODUCTS.slice();
+    let timers = {};
 
-    // --- Fullscreen (ohne Workaround) ---
-
+    // --- Fullscreen ---
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
         if (document.documentElement.requestFullscreen) {
@@ -243,7 +238,6 @@
     }
 
     // --- App-Initialisierung ---
-
     function init() {
       console.log('Klocka init');
       loadTimers();
@@ -252,10 +246,9 @@
       startLoop();
     }
 
-    init(); // Script steht am Ende des Body -> DOM ist da
+    init();
 
     // --- Timer-Persistenz ---
-
     function loadTimers() {
       const stored = localStorage.getItem(STORAGE_KEYS.timers);
       if (!stored) return;
@@ -292,15 +285,22 @@
     }
 
     // --- Events ---
-
     function setupEvents() {
-      document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+      const fsBtn = document.getElementById('btnFullscreen');
+      if (fsBtn) {
+        fsBtn.addEventListener('click', toggleFullscreen);
+      } else {
+        console.warn('btnFullscreen nicht gefunden');
+      }
     }
 
     // --- Timer-Ansicht ---
-
     function renderTimerView() {
       const container = document.getElementById('timerList');
+      if (!container) {
+        console.error('timerList nicht gefunden');
+        return;
+      }
       container.innerHTML = '';
 
       products.forEach(p => {
@@ -350,4 +350,101 @@
         startBtn.textContent = 'Start';
 
         const stopBtn = document.createElement('button');
-        stopBtn.className = 'btn-
+        stopBtn.className = 'btn-stop';
+        stopBtn.textContent = 'Stop';
+
+        row.appendChild(bar);
+        row.appendChild(startBtn);
+        row.appendChild(stopBtn);
+
+        row._nameLabel = nameLabel;
+        row._progressBar = barFill;
+        row._timeDiv = timeDiv;
+
+        startBtn.addEventListener('click', () => startTimer(p.id));
+        stopBtn.addEventListener('click', () => stopTimer(p.id));
+
+        container.appendChild(row);
+        updateRowUI(p.id);
+      });
+
+      saveTimers();
+    }
+
+    // --- Timer-Logik ---
+    function startTimer(id) {
+      const timer = timers[id];
+      if (!timer) return;
+      timer.remainingMs = timer.totalMs;
+      timer.running = true;
+      timer.endTimeMs = Date.now() + timer.remainingMs;
+      updateRowUI(id);
+      saveTimers();
+    }
+
+    function stopTimer(id) {
+      const timer = timers[id];
+      if (!timer) return;
+      timer.running = false;
+      timer.remainingMs = timer.totalMs;
+      timer.endTimeMs = null;
+      updateRowUI(id);
+      saveTimers();
+    }
+
+    function updateRowUI(id) {
+      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
+      const timer = timers[id];
+      if (!row || !timer) return;
+
+      const timeDiv = row._timeDiv;
+      const progressBar = row._progressBar;
+      timeDiv.textContent = formatDuration(timer.remainingMs);
+
+      const elapsed = Math.max(0, timer.totalMs - timer.remainingMs);
+      let ratio = 0;
+      if (timer.totalMs > 0) {
+        ratio = elapsed / timer.totalMs;
+      }
+      let percent = Math.max(0, Math.min(100, ratio * 100));
+      const expired = timer.remainingMs <= 0;
+
+      if (expired) {
+        percent = 100;
+        progressBar.classList.add('expired');
+      } else {
+        progressBar.classList.remove('expired');
+      }
+      progressBar.style.width = percent + '%';
+    }
+
+    function startLoop() {
+      setInterval(() => {
+        const now = Date.now();
+        let changed = false;
+        for (const [id, timer] of Object.entries(timers)) {
+          if (!timer.running || !timer.endTimeMs) continue;
+          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
+          if (timer.remainingMs <= 0) {
+            timer.running = false;
+            timer.endTimeMs = null;
+          }
+          updateRowUI(id);
+          changed = true;
+        }
+        if (changed) saveTimers();
+      }, 500);
+    }
+
+    // --- Hilfsfunktionen ---
+    function formatDuration(ms) {
+      if (ms <= 0) return '00:00:00';
+      const totalSeconds = Math.floor(ms / 1000);
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return String(h).padStart(2, '0') + ':' +
+             String(m).padStart(2, '0') + ':' +
+             String(s).padStart(2, '0');
+    }
+ 
