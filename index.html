@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Klocka – Digitale Eieruhr</title>
+  <title>Klocka – Digitale Eieruhr (Variante A)</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
 
@@ -15,150 +15,101 @@
     }
 
     :root {
-      /* IKEA Skapa Design Tokens */
-      --color-blue-primary: #0058A3;
-      --color-blue-dark: #003D73;
-      --color-yellow-primary: #FFDA1A;
-      --color-grey-50: #F5F5F5;
-      --color-grey-100: #E5E5E5;
-      --color-grey-200: #DFDFDF;
-      --color-grey-300: #CACACA;
-      --color-grey-700: #484848;
-      --color-grey-900: #111111;
-      --color-white: #FFFFFF;
-      
-      /* Semantic colors */
-      --color-success: #00AB00;
-      --color-error: #E00751;
-      --color-warning: #FBD914;
-      
-      /* Spacing (8px grid) */
-      --spacing-xs: 4px;
-      --spacing-sm: 8px;
-      --spacing-md: 16px;
-      --spacing-lg: 24px;
-      --spacing-xl: 32px;
-      --spacing-xxl: 40px;
-      
-      /* Border radius (Skapa standard) */
-      --radius-sm: 4px;
-      --radius-md: 8px;
-      
-      /* Shadows (Skapa elevation) */
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
-      --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
-      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.16);
-      
-      /* Typography */
-      --font-size-sm: 14px;
-      --font-size-md: 16px;
-      --font-size-lg: 20px;
-      --font-size-xl: 24px;
-      --font-size-xxl: 32px;
-      
-      --line-height-tight: 1.2;
-      --line-height-normal: 1.5;
+      /* Skapa-nahe Farben, Layout wie bisher */
+      --ikea-blue: #0058A3;           /* offizielleres IKEA-Blau */
+      --ikea-blue-dark: #003D73;
+      --bg-light: #ffffff;
+      --panel-bg: #ffffff;
+      --accent-green: #00AB00;       /* etwas näher an IKEA-Grün */
+      --accent-red: #E00751;         /* Skapa Error-Red-nah */
+      --accent-pink: #ff8aa7;        /* Balken bleibt rosa */
+      --text-main: #111111;
+      --text-muted: #555555;
     }
 
     body {
-      background: var(--color-grey-50);
-      color: var(--color-grey-900);
-      line-height: var(--line-height-normal);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      background: var(--bg-light);
+      color: var(--text-main);
+      line-height: 1.5;
     }
 
-    /* HEADER - Skapa Style */
+    /* HEADER */
     .app-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: var(--spacing-md) var(--spacing-lg);
-      background: var(--color-blue-primary);
-      color: var(--color-white);
-      box-shadow: var(--shadow-md);
+      padding: 16px 24px;
+      background: var(--ikea-blue);
+      color: #fff;
     }
 
     .app-title {
-      font-size: var(--font-size-xxl);
+      font-size: 2rem;
       font-weight: 700;
-      line-height: var(--line-height-tight);
     }
 
     .header-right {
       display: flex;
-      gap: var(--spacing-sm);
+      gap: 8px;
       align-items: center;
     }
 
     .header-button {
-      min-width: 48px;
-      min-height: 48px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      padding: 0;
-      background: transparent;
-      color: var(--color-white);
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.4);
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
       cursor: pointer;
-      font-size: var(--font-size-lg);
+      font-weight: 600;
+      font-size: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
     }
 
-    .header-button:hover {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.5);
+    #btnFullscreen {
+      font-size: 1.2rem;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      padding: 0;
     }
 
-    .header-button:active {
-      background: rgba(255, 255, 255, 0.25);
+    .header-button:focus-visible {
+      outline: 3px solid #ffffff;
+      outline-offset: 2px;
     }
 
     /* MAIN LAYOUT */
     .app-main {
-      padding: var(--spacing-lg);
-      max-width: 1400px;
-      margin: 0 auto;
+      padding: 24px;
     }
 
     .timer-container {
-      background: var(--color-white);
-      border-radius: var(--radius-md);
-      padding: var(--spacing-md);
-      box-shadow: var(--shadow-sm);
+      background: var(--panel-bg);
+      padding: 8px 0 24px 0;
     }
 
     .timer-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 140px 140px;
-      gap: var(--spacing-md);
+      gap: 12px;
       align-items: center;
-      padding: var(--spacing-md);
-      background: var(--color-white);
-      border-radius: var(--radius-sm);
-      transition: background-color 0.2s ease;
-    }
-
-    .timer-row:hover {
-      background: var(--color-grey-50);
+      padding: 8px 16px;
+      font-size: 1rem;
     }
 
     .timer-row + .timer-row {
-      margin-top: var(--spacing-sm);
-      border-top: 1px solid var(--color-grey-100);
+      margin-top: 8px;
     }
 
-    /* Timer Bar mit Fortschritt */
     .timer-bar {
       position: relative;
       width: 100%;
-      min-height: 56px;
-      border-radius: var(--radius-sm);
+      height: 56px;
       overflow: hidden;
-      background: var(--color-grey-100);
-      border: 1px solid var(--color-grey-200);
+      background: transparent;
     }
 
     .timer-bar-fill {
@@ -167,14 +118,14 @@
       top: 0;
       bottom: 0;
       width: 0;
-      background: var(--color-yellow-primary);
-      transition: width 0.3s ease-out;
+      background: var(--accent-pink); /* bleibt rosa */
+      transition: width 0.3s linear;
       z-index: 0;
     }
 
     .timer-bar-fill.expired {
-      background: var(--color-error);
-      animation: blink 1s ease-in-out infinite;
+      background: var(--accent-red);
+      animation: blink 1s linear infinite;
     }
 
     .timer-bar-content {
@@ -183,145 +134,81 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: var(--spacing-md);
-      min-height: 56px;
+      padding: 0 12px;
+      height: 100%;
     }
 
     .timer-name {
-      font-weight: 700;
-      font-size: var(--font-size-xl);
-      color: var(--color-grey-900);
-      line-height: var(--line-height-tight);
+      font-weight: 600;
+      font-size: 24px;
     }
 
     .timer-time {
-      font-size: var(--font-size-xl);
+      font-size: 24px;
       font-weight: 600;
-      color: var(--color-grey-700);
-      font-variant-numeric: tabular-nums;
-      line-height: var(--line-height-tight);
     }
 
     @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0.4; }
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.3; }
     }
 
-    /* BUTTONS - Skapa Style */
     .btn-start {
-      background: var(--color-white);
-      color: var(--color-success);
-      border: 2px solid var(--color-grey-200);
-    }
-
-    .btn-start:hover {
-      background: var(--color-grey-50);
-      border-color: var(--color-success);
-    }
-
-    .btn-start:active {
-      background: var(--color-grey-100);
+      background: #e0e0e0;
+      color: var(--accent-green);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .btn-stop {
-      background: var(--color-error);
-      color: var(--color-white);
-      border: 2px solid var(--color-error);
-    }
-
-    .btn-stop:hover {
-      background: #C00648;
-      border-color: #C00648;
-    }
-
-    .btn-stop:active {
-      background: #A00540;
+      background: var(--accent-red);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
 
     .btn-start,
     .btn-stop {
-      border-radius: var(--radius-sm);
+      border-radius: 12px;
+      border: none;
       height: 56px;
-      min-width: 140px;
-      padding: 0 var(--spacing-lg);
+      padding: 0 20px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-weight: 700;
-      font-size: var(--font-size-lg);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.2s ease;
-      box-shadow: var(--shadow-sm);
+      font-weight: 600;
+      font-size: 22px;
     }
 
     .btn-start:focus-visible,
     .btn-stop:focus-visible {
-      outline: 3px solid var(--color-blue-primary);
+      outline: 3px solid var(--ikea-blue);
       outline-offset: 2px;
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      .app-main { 
-        padding: var(--spacing-md); 
-      }
-      
-      .app-header { 
-        flex-direction: column; 
-        align-items: flex-start; 
-        gap: var(--spacing-sm); 
-      }
-      
-      .timer-row { 
-        grid-template-columns: 1fr;
-        gap: var(--spacing-sm);
-      }
-      
-      .btn-start,
-      .btn-stop {
-        width: 100%;
-      }
-    }
-
     @media (max-width: 600px) {
-      .timer-row { 
-        padding: var(--spacing-sm); 
-      }
-      
-      .timer-name {
-        font-size: var(--font-size-lg);
-      }
-      
-      .timer-time {
-        font-size: var(--font-size-lg);
-      }
-      
-      .app-title {
-        font-size: var(--font-size-xl);
-      }
+      .app-main { padding: 16px; }
+      .app-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .timer-row { padding-inline: 8px; }
     }
   </style>
 </head>
 <body>
   <header class="app-header">
-    <h1 class="app-title">Klocka</h1>
+    <div class="app-title" id="titleText">Klocka</div>
     <div class="header-right">
       <button class="header-button" id="btnFullscreen" aria-label="Vollbild umschalten">⛶</button>
     </div>
   </header>
 
   <main class="app-main">
-    <section id="timerView" aria-label="Timer-Übersicht">
+    <section id="timerView">
       <div class="timer-container">
-        <div id="timerList" role="list"></div>
+        <div id="timerList"></div>
       </div>
     </section>
   </main>
 
   <script>
-    // --- Feste Produkte (Deutsch) ---
     const FIXED_PRODUCTS = [
       { id: 1,  name: "Pommes",        minutes: 10 },
       { id: 2,  name: "Erbsen",        minutes: 20 },
@@ -335,14 +222,11 @@
       { id: 10, name: "Plant Nuggets", minutes: 40 }
     ];
 
-    const STORAGE_KEYS = {
-      timers: 'klockaTimers'
-    };
+    const STORAGE_KEYS = { timers: 'klockaTimers' };
 
     let products = FIXED_PRODUCTS.slice();
     let timers = {};
 
-    // --- Fullscreen ---
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
         if (document.documentElement.requestFullscreen) {
@@ -355,9 +239,7 @@
       }
     }
 
-    // --- App-Initialisierung ---
     function init() {
-      console.log('Klocka init - Skapa Design System');
       loadTimers();
       renderTimerView();
       setupEvents();
@@ -366,7 +248,6 @@
 
     init();
 
-    // --- Timer-Persistenz ---
     function loadTimers() {
       const stored = localStorage.getItem(STORAGE_KEYS.timers);
       if (!stored) return;
@@ -402,15 +283,11 @@
       localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
     }
 
-    // --- Events ---
     function setupEvents() {
       const fsBtn = document.getElementById('btnFullscreen');
-      if (fsBtn) {
-        fsBtn.addEventListener('click', toggleFullscreen);
-      }
+      if (fsBtn) fsBtn.addEventListener('click', toggleFullscreen);
     }
 
-    // --- Timer-Ansicht ---
     function renderTimerView() {
       const container = document.getElementById('timerList');
       container.innerHTML = '';
@@ -427,3 +304,135 @@
           };
         } else {
           timers[p.id].totalMs = totalMs;
+          if (!timers[p.id].running && timers[p.id].remainingMs > totalMs) {
+            timers[p.id].remainingMs = totalMs;
+          }
+        }
+
+        const row = document.createElement('div');
+        row.className = 'timer-row';
+        row.dataset.id = p.id;
+
+        const bar = document.createElement('div');
+        bar.className = 'timer-bar';
+
+        const barFill = document.createElement('div');
+        barFill.className = 'timer-bar-fill';
+
+        const barContent = document.createElement('div');
+        barContent.className = 'timer-bar-content';
+
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'timer-name';
+        nameLabel.textContent = p.name;
+
+        const timeDiv = document.createElement('span');
+        timeDiv.className = 'timer-time';
+
+        barContent.appendChild(nameLabel);
+        barContent.appendChild(timeDiv);
+        bar.appendChild(barFill);
+        bar.appendChild(barContent);
+
+        const startBtn = document.createElement('button');
+        startBtn.className = 'btn-start';
+        startBtn.textContent = 'Start';
+
+        const stopBtn = document.createElement('button');
+        stopBtn.className = 'btn-stop';
+        stopBtn.textContent = 'Stop';
+
+        row.appendChild(bar);
+        row.appendChild(startBtn);
+        row.appendChild(stopBtn);
+
+        row._nameLabel = nameLabel;
+        row._progressBar = barFill;
+        row._timeDiv = timeDiv;
+
+        startBtn.addEventListener('click', () => startTimer(p.id));
+        stopBtn.addEventListener('click', () => stopTimer(p.id));
+
+        container.appendChild(row);
+        updateRowUI(p.id);
+      });
+
+      saveTimers();
+    }
+
+    function startTimer(id) {
+      const timer = timers[id];
+      if (!timer) return;
+      timer.remainingMs = timer.totalMs;
+      timer.running = true;
+      timer.endTimeMs = Date.now() + timer.remainingMs;
+      updateRowUI(id);
+      saveTimers();
+    }
+
+    function stopTimer(id) {
+      const timer = timers[id];
+      if (!timer) return;
+      timer.running = false;
+      timer.remainingMs = timer.totalMs;
+      timer.endTimeMs = null;
+      updateRowUI(id);
+      saveTimers();
+    }
+
+    function updateRowUI(id) {
+      const row = document.querySelector('.timer-row[data-id="' + id + '"]');
+      const timer = timers[id];
+      if (!row || !timer) return;
+
+      const timeDiv = row._timeDiv;
+      const progressBar = row._progressBar;
+      timeDiv.textContent = formatDuration(timer.remainingMs);
+
+      const elapsed = Math.max(0, timer.totalMs - timer.remainingMs);
+      let ratio = 0;
+      if (timer.totalMs > 0) ratio = elapsed / timer.totalMs;
+      let percent = Math.max(0, Math.min(100, ratio * 100));
+      const expired = timer.remainingMs <= 0;
+
+      if (expired) {
+        percent = 100;
+        progressBar.classList.add('expired');
+      } else {
+        progressBar.classList.remove('expired');
+      }
+      progressBar.style.width = percent + '%';
+    }
+
+    function startLoop() {
+      setInterval(() => {
+        const now = Date.now();
+        let changed = false;
+        for (const [id, timer] of Object.entries(timers)) {
+          if (!timer.running || !timer.endTimeMs) continue;
+          timer.remainingMs = Math.max(0, timer.endTimeMs - now);
+          if (timer.remainingMs <= 0) {
+            timer.running = false;
+            timer.endTimeMs = null;
+          }
+          updateRowUI(id);
+          changed = true;
+        }
+        if (changed) saveTimers();
+      }, 500);
+    }
+
+    function formatDuration(ms) {
+      if (ms <= 0) return '00:00:00';
+      const totalSeconds = Math.floor(ms / 1000);
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return String(h).padStart(2,'0') + ':' +
+             String(m).padStart(2,'0') + ':' +
+             String(s).padStart(2,'0');
+    }
+  </script>
+</body>
+</html>
+</pre>
